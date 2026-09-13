@@ -25,6 +25,9 @@ abstract class AbstractJumpSugarApplicator(
     }
 
     protected abstract val annoName: String
+    protected lateinit var jumpTarget: LabelNode
+
+    override fun postProcessingPriority() = 50000
 
     override fun validate(target: Target, node: InjectionNodes.InjectionNode) {
         if (JUMP_HANDLE_TYPE != paramType) {
@@ -32,7 +35,15 @@ abstract class AbstractJumpSugarApplicator(
         }
     }
 
-    fun createJumpHandle(target: Target, node: InjectionNodes.InjectionNode, stack: StackExtension, jumpTarget: LabelNode): Int {
+    override fun inject(
+        target: Target,
+        node: InjectionNodes.InjectionNode,
+        stack: StackExtension
+    ) {
+        target.insns.insertBefore(node.currentTarget, VarInsnNode(Opcodes.ALOAD, createJumpHandle(target, node, stack)))
+    }
+
+    fun createJumpHandle(target: Target, node: InjectionNodes.InjectionNode, stack: StackExtension): Int {
         val handleIndex = target.allocateLocal()
         target.addLocalVariable(handleIndex, "jumpHandle$handleIndex", JUMP_HANDLE_TYPE.descriptor)
 
@@ -46,17 +57,6 @@ abstract class AbstractJumpSugarApplicator(
             "()V"
         ))
         insns.add(VarInsnNode(Opcodes.ASTORE, handleIndex))
-
-        val frames = Analyzer(MixinVerifier(
-            ASM.API_VERSION,
-            Type.getObjectType(target.classNode.name),
-            target.classNode.superName?.let { Type.getObjectType(it) },
-            target.classNode.interfaces?.map { Type.getObjectType(it) },
-            target.classNode.access and Opcodes.ACC_INTERFACE != 0
-        )).analyze(target.classNode.name, target.method)
-
-        val sourceFrame = frames[target.insns.indexOf(node.currentTarget) + 1]
-        val targetFrame = frames[target.insns.indexOf(jumpTarget)]
 
         target.insertBefore(node, insns)
 
@@ -72,6 +72,17 @@ abstract class AbstractJumpSugarApplicator(
                 "()Z"
             ))
             insns.add(JumpInsnNode(Opcodes.IFEQ, notBroken))
+
+            val frames = Analyzer(MixinVerifier(
+                ASM.API_VERSION,
+                Type.getObjectType(target.classNode.name),
+                target.classNode.superName?.let { Type.getObjectType(it) },
+                target.classNode.interfaces?.map { Type.getObjectType(it) },
+                target.classNode.access and Opcodes.ACC_INTERFACE != 0
+            )).analyze(target.classNode.name, target.method)
+
+            val sourceFrame = frames[target.insns.indexOf(node.currentTarget) + 1]
+            val targetFrame = frames[target.insns.indexOf(jumpTarget)]
 
             for (i in sourceFrame.stackSize - 1 downTo targetFrame.stackSize) {
                 sourceFrame.getStack(i).type?.let { type ->
@@ -123,7 +134,7 @@ abstract class AbstractJumpSugarApplicator(
             target.insns.insert(node.currentTarget, insns)
         }
 
-        stack.extra(20)
+        stack.extra(50)
         return handleIndex
     }
 }

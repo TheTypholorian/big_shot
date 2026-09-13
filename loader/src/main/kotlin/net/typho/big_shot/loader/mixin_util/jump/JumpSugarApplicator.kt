@@ -1,26 +1,19 @@
 package net.typho.big_shot.loader.mixin_util.jump
 
-import com.llamalad7.mixinextras.injector.StackExtension
 import com.llamalad7.mixinextras.sugar.impl.SugarParameter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.AnnotationNode
 import org.objectweb.asm.tree.LabelNode
-import org.objectweb.asm.tree.MethodNode
-import org.objectweb.asm.tree.VarInsnNode
 import org.objectweb.asm.tree.analysis.Analyzer
-import org.spongepowered.asm.mixin.injection.IInjectionPointContext
 import org.spongepowered.asm.mixin.injection.InjectionPoint
-import org.spongepowered.asm.mixin.injection.selectors.ISelectorContext
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.injection.struct.InjectionNodes
 import org.spongepowered.asm.mixin.injection.struct.Target
-import org.spongepowered.asm.mixin.refmap.IMixinContext
 import org.spongepowered.asm.mixin.struct.AnnotatedMethodInfo
 import org.spongepowered.asm.util.Annotations
 import org.spongepowered.asm.util.asm.ASM
-import org.spongepowered.asm.util.asm.IAnnotationHandle
 import org.spongepowered.asm.util.asm.MixinVerifier
 
 class JumpSugarApplicator(
@@ -30,18 +23,9 @@ class JumpSugarApplicator(
     override val annoName: String
         get() = "Jump"
 
-    override fun postProcessingPriority() = 500
-
     override fun prepare(
         target: Target,
         node: InjectionNodes.InjectionNode
-    ) {
-    }
-
-    override fun inject(
-        target: Target,
-        node: InjectionNodes.InjectionNode,
-        stack: StackExtension
     ) {
         val injectionPoint = InjectionPoint.parse(AnnotatedMethodInfo(info.mixin, target.method, sugar), Annotations.getValue<AnnotationNode>(sugar, "value"))
         val targets = mutableListOf<AbstractInsnNode>()
@@ -63,8 +47,6 @@ class JumpSugarApplicator(
             targetNode = targetNode.previous
         }
 
-        val actualTargetNode = targetNode as? LabelNode ?: LabelNode().also { target.method.instructions.insertBefore(targetNode, it) }
-        val handleIndex = createJumpHandle(target, node, stack, actualTargetNode)
-        target.insns.insertBefore(node.currentTarget, VarInsnNode(Opcodes.ALOAD, handleIndex))
+        jumpTarget = targetNode as? LabelNode ?: LabelNode().also { target.method.instructions.insertBefore(targetNode, it) }
     }
 }
