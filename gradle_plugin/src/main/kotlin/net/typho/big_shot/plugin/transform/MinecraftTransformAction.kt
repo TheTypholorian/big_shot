@@ -1,5 +1,6 @@
 package net.typho.big_shot.plugin.transform
 
+import net.typho.asm_util.ClassTransformInfo
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
@@ -11,17 +12,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault
-abstract class MinecraftTransformAction : TransformAction<MinecraftTransformAction.Parameters> {
-    @get:InputArtifact
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val input: Provider<FileSystemLocation>
-
-    override fun transform(outputs: TransformOutputs) {
-        val input = input.get().asFile
-        val output = outputs.file(input.nameWithoutExtension + "-transformed.jar")
-        println("Transforming $input")
-        input.copyTo(output, overwrite = true) // TODO
+abstract class MinecraftTransformAction : JarTransformAction<JarTransformAction.NoParameters> {
+    override fun transformClass(info: ClassTransformInfo) {
     }
-
-    interface Parameters : TransformParameters
 }

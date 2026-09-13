@@ -1,25 +1,34 @@
 package net.typho.big_shot.loader
 
+import com.llamalad7.mixinextras.lib.apache.commons.tuple.Pair
+import com.llamalad7.mixinextras.sugar.impl.SugarApplicator
+import net.typho.asm_util.ASMUtil
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.error.ClassVisitException
+import net.typho.asm_util.insn.InsnPointer
+import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.loader.constant.TransformEventNames
+import net.typho.big_shot.loader.mixin_util.jump.BreakLoop
+import net.typho.big_shot.loader.mixin_util.jump.BreakLoopSugarApplicator
 import net.typho.big_shot.loader.util.EventGraph
+import net.typho.big_shot.loader.util.inst.RemapEvent
 import net.typho.big_shot.loader.util.inst.TransformEvent
 import net.typho.big_shot.loader.util.inst.TransformType
 import net.typho.big_shot.loader.util.mixin.KotlinMixinFixer
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.commons.Remapper
+import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.MethodInsnNode
 import java.lang.instrument.ClassFileTransformer
 import java.lang.instrument.Instrumentation
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.security.ProtectionDomain
-import java.util.function.Function
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.writeBytes
+import kotlin.jvm.java
 
 object BigShotLoader {
     @get:JvmName("getInstrumentation")
@@ -27,7 +36,7 @@ object BigShotLoader {
     @JvmField
     val TRANSFORM_EVENTS = EventGraph<String, TransformEvent>()
     @JvmField
-    val REMAP_EVENTS = EventGraph<String, Function<ClassTransformInfo, Remapper?>>()
+    val REMAP_EVENTS = EventGraph<String, RemapEvent>()
 
     @get:JvmName("getLoaderPath")
     lateinit var LOADER_PATH: Path
@@ -35,21 +44,55 @@ object BigShotLoader {
     val DEBUG_PATH = Paths.get(".big_shot_debug")
 
     init {
-        TRANSFORM_EVENTS.register(TransformEventNames.KOTLIN_MIXIN_FIXER) { type, info ->
+        TRANSFORM_EVENTS.register(TransformEventNames.ACCESS_WIDENERS) { type, info, className ->
+            when (className) {
+                "com/llamalad7/mixinextras/sugar/impl/SugarApplicator" -> {
+                    info.node.access = ASMUtil.accessPublic(info.node.access)
+                    info.node.fields.forEach { it.access = ASMUtil.accessPublic(it.access) }
+                    info.node.methods.forEach { it.access = ASMUtil.accessPublic(it.access) }
+                    info.markChanged()
+                }
+                "com/llamalad7/mixinextras/sugar/impl/SugarPostProcessingExtension" -> {
+                    MethodPointer.method().name("enqueuePostProcessing").find(info.node).forEach { it.access = ASMUtil.accessPublic(it.access) }
+                    info.markChanged()
+                }
+            }
+        }
+        TRANSFORM_EVENTS.register(TransformEventNames.MIXIN_UTILS) { type, info, className ->
+            when (className) {
+                "com/llamalad7/mixinextras/sugar/impl/SugarApplicator" -> {
+                    MethodPointer.method().name("<clinit>").findOrThrow(info.node) { method ->
+                        InsnPointer.methodCallStatic().owner("java/util/Arrays").name("asList").ordinal(0).findOrThrow(method.instructions) { insn ->
+                            method.instructions.insert(insn, MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "net/typho/big_shot/loader/BigShotLoader",
+                                "registerExtraMixinSugars",
+                                "(Ljava/util/List;)Ljava/util/List;"
+                            ))
+                        }
+                    }
+                    info.markChanged()
+                }
+            }
+        }.after(TransformEventNames.ACCESS_WIDENERS)
+        TRANSFORM_EVENTS.register(TransformEventNames.KOTLIN_MIXIN_FIXER) { type, info, className ->
             if (type == TransformType.MIXIN) {
                 if (KotlinMixinFixer.fix(info.node)) {
                     info.markChanged()
                 }
             }
         }
-        TRANSFORM_EVENTS.register(TransformEventNames.REMAP) { type, info ->
+        TRANSFORM_EVENTS.register(TransformEventNames.REMAP) { type, info, className ->
             val newNode = ClassNode()
-            val visitor = REMAP_EVENTS.resolve().foldRight(newNode as ClassVisitor) { event, accum ->
-                val remapper = event.event.apply(info)
-                if (remapper == null) accum else CompatClassRemapper(accum, remapper)
+            val visitor = REMAP_EVENTS.resolve().foldRight(newNode as ClassVisitor) { event, visitor ->
+                val remapper = event.event.createRemapper(info)
+                if (remapper == null) visitor else CompatClassRemapper(visitor, remapper)
             }
-            info.node.accept(visitor)
-            info.node = newNode
+
+            if (visitor !== newNode) {
+                info.node.accept(visitor)
+                info.node = newNode
+            }
         }.after(TransformEventNames.KOTLIN_MIXIN_FIXER) // we want to remap after kotlin mixins are fixed, since companion objects
     }
 
@@ -88,7 +131,7 @@ object BigShotLoader {
 
                     TRANSFORM_EVENTS.execute { id, event ->
                         info.fallbackErrorSource = id
-                        event.transform(TransformType.CLASS, info)
+                        event.transform(TransformType.CLASS, info, className)
                     }
 
                     return info.compile(::debugSaveClass)
@@ -103,13 +146,21 @@ object BigShotLoader {
 
     @Suppress("unused")
     @JvmStatic
+    fun registerExtraMixinSugars(sugars: List<Pair<Class<out Annotation>, Class<out SugarApplicator>>>): List<Pair<Class<out Annotation>, Class<out SugarApplicator>>> {
+        return sugars + listOf(
+            Pair.of(BreakLoop::class.java, BreakLoopSugarApplicator::class.java)
+        )
+    }
+
+    @Suppress("unused")
+    @JvmStatic
     fun transformMixinClass(node: ClassNode) {
         try {
             val info = ClassTransformInfo.Wrapper(node)
 
             TRANSFORM_EVENTS.execute { id, event ->
                 info.fallbackErrorSource = id
-                event.transform(TransformType.MIXIN, info)
+                event.transform(TransformType.MIXIN, info, node.name)
             }
 
             info.checkErrors()

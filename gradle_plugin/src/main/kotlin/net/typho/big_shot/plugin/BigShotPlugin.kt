@@ -1,5 +1,6 @@
 package net.typho.big_shot.plugin
 
+import net.typho.big_shot.plugin.transform.AccessWidenTransformAction
 import net.typho.big_shot.plugin.transform.MinecraftTransformAction
 import org.apache.maven.model.Model
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer
@@ -11,17 +12,22 @@ import org.eclipse.aether.supplier.RepositorySystemSupplier
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.plugins.JavaPluginExtension
 import java.net.URI
 import java.nio.file.Files
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writer
+import kotlin.jvm.java
 
 class BigShotPlugin : Plugin<Project> {
     companion object {
         @JvmField
-        val MINECRAFT_ATTRIBUTE = Attribute.of(
-            "big_shot.minecraft",
+        val MINECRAFT_TRANSFORMED_ATTRIBUTE = Attribute.of(
+            "big_shot.minecraft_transformed",
+            Boolean::class.javaObjectType
+        )
+        @JvmField
+        val ACCESS_WIDENED_ATTRIBUTE = Attribute.of(
+            "big_shot.access_widened",
             Boolean::class.javaObjectType
         )
     }
@@ -32,18 +38,33 @@ class BigShotPlugin : Plugin<Project> {
             it.parameters.cacheFolder.set(cacheFolder)
         }
 
-        project.plugins.apply("java")
-        val javaExt = project.extensions.getByType(JavaPluginExtension::class.java)
-        val manifest = javaExt.sourceSets.create("manifest")
+        //project.plugins.apply("java")
+        //val javaExt = project.extensions.getByType(JavaPluginExtension::class.java)
+        //val manifest = javaExt.sourceSets.create("manifest")
 
-        project.dependencies.artifactTypes.configureEach { it.attributes.attribute(MINECRAFT_ATTRIBUTE, false) }
+        project.dependencies.artifactTypes.configureEach {
+            it.attributes.attribute(MINECRAFT_TRANSFORMED_ATTRIBUTE, false)
+            it.attributes.attribute(ACCESS_WIDENED_ATTRIBUTE, false)
+        }
         project.dependencies.registerTransform(MinecraftTransformAction::class.java) {
-            it.from.attribute(MINECRAFT_ATTRIBUTE, false)
-            it.to.attribute(MINECRAFT_ATTRIBUTE, true)
+            it.from.attribute(MINECRAFT_TRANSFORMED_ATTRIBUTE, false)
+            it.to.attribute(MINECRAFT_TRANSFORMED_ATTRIBUTE, true)
+        }
+        project.dependencies.registerTransform(AccessWidenTransformAction::class.java) {
+            it.from.attribute(ACCESS_WIDENED_ATTRIBUTE, false)
+            it.to.attribute(ACCESS_WIDENED_ATTRIBUTE, true)
         }
 
+        val extraAccessWiden = project.configurations.create("extraAccessWiden")
+        project.dependencies.add("implementation", extraAccessWiden.incoming.artifactView {
+            it.attributes.attribute(ACCESS_WIDENED_ATTRIBUTE, true)
+        }.artifacts.artifactFiles)
+
         val minecraft = project.configurations.create("minecraft")
-        project.dependencies.add("implementation", minecraft.incoming.artifactView { it.attributes.attribute(MINECRAFT_ATTRIBUTE, true) }.artifacts.artifactFiles)
+        project.dependencies.add("implementation", minecraft.incoming.artifactView {
+            it.attributes.attribute(MINECRAFT_TRANSFORMED_ATTRIBUTE, true)
+            it.attributes.attribute(ACCESS_WIDENED_ATTRIBUTE, true)
+        }.artifacts.artifactFiles)
 
         val repoPath = cacheFolder.resolve("minecraft_repo").toPath()
         val repoSystem = RepositorySystemSupplier().get()

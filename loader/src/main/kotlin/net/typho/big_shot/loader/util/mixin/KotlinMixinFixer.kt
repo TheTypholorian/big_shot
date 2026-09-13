@@ -112,6 +112,8 @@ object KotlinMixinFixer {
             }
         }
 
+        node.visibleAnnotations?.removeIf { it.desc == "Lkotlin/Metadata;" }
+
         if (changed) {
             val writer = ClassWriter(ClassWriter.COMPUTE_MAXS)
             node.accept(writer)
