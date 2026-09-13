@@ -11,6 +11,8 @@ import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.loader.constant.TransformEventNames
 import net.typho.big_shot.loader.mixin_util.jump.BreakLoop
 import net.typho.big_shot.loader.mixin_util.jump.BreakLoopSugarApplicator
+import net.typho.big_shot.loader.mixin_util.jump.Jump
+import net.typho.big_shot.loader.mixin_util.jump.JumpSugarApplicator
 import net.typho.big_shot.loader.util.EventGraph
 import net.typho.big_shot.loader.util.inst.RemapEvent
 import net.typho.big_shot.loader.util.inst.TransformEvent
@@ -148,7 +150,8 @@ object BigShotLoader {
     @JvmStatic
     fun registerExtraMixinSugars(sugars: List<Pair<Class<out Annotation>, Class<out SugarApplicator>>>): List<Pair<Class<out Annotation>, Class<out SugarApplicator>>> {
         return sugars + listOf(
-            Pair.of(BreakLoop::class.java, BreakLoopSugarApplicator::class.java)
+            Pair.of(BreakLoop::class.java, BreakLoopSugarApplicator::class.java),
+            Pair.of(Jump::class.java, JumpSugarApplicator::class.java)
         )
     }
 

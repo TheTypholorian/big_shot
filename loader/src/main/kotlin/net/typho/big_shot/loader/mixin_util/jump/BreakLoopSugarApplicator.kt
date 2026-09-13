@@ -14,7 +14,7 @@ import org.spongepowered.asm.util.Annotations
 class BreakLoopSugarApplicator(
     info: InjectionInfo,
     parameter: SugarParameter
-) : JumpSugarApplicator(info, parameter) {
+) : AbstractJumpSugarApplicator(info, parameter) {
     override val annoName: String
         get() = "BreakLoop"
 
