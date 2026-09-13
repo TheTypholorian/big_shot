@@ -19,7 +19,7 @@ class MinecraftMixin {
         )]
     )
     private fun createTitle(instance: StringBuilder, operation: Operation<String>): String {
-        TestMixinTarget.main()
+        TestMixinTarget.switch0(3)
         return operation.call(instance.append(" + Big Shot Loader"))
     }
 }

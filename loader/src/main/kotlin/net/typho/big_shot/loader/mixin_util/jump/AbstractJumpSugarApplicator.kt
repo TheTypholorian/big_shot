@@ -27,7 +27,7 @@ abstract class AbstractJumpSugarApplicator(
     protected abstract val annoName: String
     protected lateinit var jumpTarget: LabelNode
 
-    override fun postProcessingPriority() = 50000
+    override fun postProcessingPriority() = 500
 
     override fun validate(target: Target, node: InjectionNodes.InjectionNode) {
         if (JUMP_HANDLE_TYPE != paramType) {

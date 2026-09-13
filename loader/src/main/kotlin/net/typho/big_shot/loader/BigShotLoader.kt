@@ -13,6 +13,8 @@ import net.typho.big_shot.loader.mixin_util.jump.BreakLoop
 import net.typho.big_shot.loader.mixin_util.jump.BreakLoopSugarApplicator
 import net.typho.big_shot.loader.mixin_util.jump.Jump
 import net.typho.big_shot.loader.mixin_util.jump.JumpSugarApplicator
+import net.typho.big_shot.loader.mixin_util.switches.AddSwitchBranchInjectionInfo
+import net.typho.big_shot.loader.mixin_util.switches.SwitchInjectionPoint
 import net.typho.big_shot.loader.util.EventGraph
 import net.typho.big_shot.loader.util.inst.RemapEvent
 import net.typho.big_shot.loader.util.inst.TransformEvent
@@ -23,6 +25,8 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodInsnNode
+import org.spongepowered.asm.mixin.injection.InjectionPoint
+import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import java.lang.instrument.ClassFileTransformer
 import java.lang.instrument.Instrumentation
 import java.nio.file.Path
@@ -74,6 +78,34 @@ object BigShotLoader {
                         }
                     }
                     info.markChanged()
+                }
+                "org/spongepowered/asm/mixin/injection/struct/InjectionInfo" -> {
+                    MethodPointer.method().name("<clinit>").findOrThrow(info.node) { method ->
+                        InsnPointer.simple().opcode(Opcodes.RETURN).findOrThrow(method.instructions) { insn ->
+                            method.instructions.insertBefore(insn, MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "net/typho/big_shot/loader/BigShotLoader",
+                                "registerInjectionInfos",
+                                "()V"
+                            ))
+                        }
+                    }
+                    info.markChanged()
+                    info.computeFrames()
+                }
+                "org/spongepowered/asm/mixin/injection/InjectionPoint" -> {
+                    MethodPointer.method().name("<clinit>").findOrThrow(info.node) { method ->
+                        InsnPointer.simple().opcode(Opcodes.RETURN).findOrThrow(method.instructions) { insn ->
+                            method.instructions.insertBefore(insn, MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "net/typho/big_shot/loader/BigShotLoader",
+                                "registerInjectionPoints",
+                                "()V"
+                            ))
+                        }
+                    }
+                    info.markChanged()
+                    info.computeFrames()
                 }
             }
         }.after(TransformEventNames.ACCESS_WIDENERS)
@@ -153,6 +185,18 @@ object BigShotLoader {
             Pair.of(BreakLoop::class.java, BreakLoopSugarApplicator::class.java),
             Pair.of(Jump::class.java, JumpSugarApplicator::class.java)
         )
+    }
+
+    @Suppress("unused")
+    @JvmStatic
+    fun registerInjectionInfos() {
+        InjectionInfo.register(AddSwitchBranchInjectionInfo::class.java)
+    }
+
+    @Suppress("unused", "deprecation", "RedundantSuppression")
+    @JvmStatic
+    fun registerInjectionPoints() {
+        InjectionPoint.register(SwitchInjectionPoint::class.java)
     }
 
     @Suppress("unused")
