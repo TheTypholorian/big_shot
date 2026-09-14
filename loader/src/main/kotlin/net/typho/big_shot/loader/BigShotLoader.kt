@@ -9,12 +9,13 @@ import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.loader.constant.TransformEventNames
-import net.typho.big_shot.loader.mixin_util.jump.BreakLoop
-import net.typho.big_shot.loader.mixin_util.jump.BreakLoopSugarApplicator
-import net.typho.big_shot.loader.mixin_util.jump.Jump
-import net.typho.big_shot.loader.mixin_util.jump.JumpSugarApplicator
+import net.typho.big_shot.loader.mixin_util.BreakLoop
+import net.typho.big_shot.loader.mixin_util.BreakLoopSugarApplicator
+import net.typho.big_shot.loader.mixin_util.InstructionInjectionPoint
+import net.typho.big_shot.loader.mixin_util.Jump
+import net.typho.big_shot.loader.mixin_util.JumpSugarApplicator
 import net.typho.big_shot.loader.mixin_util.switches.AddSwitchBranchInjectionInfo
-import net.typho.big_shot.loader.mixin_util.switches.SwitchInjectionPoint
+import net.typho.big_shot.loader.mixin_util.SwitchInjectionPoint
 import net.typho.big_shot.loader.util.EventGraph
 import net.typho.big_shot.loader.util.inst.RemapEvent
 import net.typho.big_shot.loader.util.inst.TransformEvent
@@ -190,13 +191,13 @@ object BigShotLoader {
     @Suppress("unused")
     @JvmStatic
     fun registerInjectionInfos() {
-        InjectionInfo.register(AddSwitchBranchInjectionInfo::class.java)
     }
 
     @Suppress("unused", "deprecation", "RedundantSuppression")
     @JvmStatic
     fun registerInjectionPoints() {
         InjectionPoint.register(SwitchInjectionPoint::class.java)
+        InjectionPoint.register(InstructionInjectionPoint::class.java)
     }
 
     @Suppress("unused")

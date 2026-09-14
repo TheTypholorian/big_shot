@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.mixin_util.jump
+package net.typho.big_shot.loader.mixin_util
 
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.BINARY)
