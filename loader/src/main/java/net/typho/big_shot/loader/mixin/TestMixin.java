@@ -33,6 +33,18 @@ public class TestMixin {
         return "w";
     }
 
+    @AddSwitchBranch(
+            method = {"switch4"},
+            at = @At(
+                    value = "BIG_SHOT:SWITCH",
+                    ordinal = 0
+            ),
+            enumValue = "net/typho/big_shot/loader/TestMixinTarget$TestEnum.BIG_SHOT_LOADER_Z"
+    )
+    private static String switch4Inject() {
+        return "d";
+    }
+
     /*
     @WrapOperation(
             method = "main",

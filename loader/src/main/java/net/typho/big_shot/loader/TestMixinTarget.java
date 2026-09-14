@@ -54,16 +54,37 @@ public class TestMixinTarget {
     }
 
     public static enum TestEnum {
-        A, B, C
+        A, B
     }
 
     public static void switch4(TestEnum e) {
         System.out.println(switch (e) {
-            case TestEnum.A -> "a";
             case TestEnum.B -> "b";
-            case TestEnum.C -> "c";
+            case TestEnum.A -> "a";
+            default -> throw new AssertionError();
         });
     }
+
+    /*
+    public static void switch6(ShaderType s) {
+        System.out.println(switch (s) {
+            case ShaderType.VERTEX -> "vert";
+            case ShaderType.FRAGMENT -> "frag";
+            default -> throw new AssertionError();
+        });
+    }
+
+    public static void switch7(Direction d) {
+        System.out.println(switch (d) {
+            case DOWN -> "down";
+            case UP -> "up";
+            case NORTH -> "north";
+            case SOUTH -> "south";
+            case WEST -> "west";
+            case EAST -> "east";
+        });
+    }
+     */
 
     public static void switch5(String s) {
         System.out.println(switch (s) {
