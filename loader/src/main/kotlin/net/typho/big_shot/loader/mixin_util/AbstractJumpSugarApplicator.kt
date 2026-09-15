@@ -11,6 +11,7 @@ import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import org.objectweb.asm.tree.analysis.Analyzer
 import org.objectweb.asm.tree.analysis.BasicValue
+import org.objectweb.asm.tree.analysis.Frame
 import org.objectweb.asm.util.TraceClassVisitor
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.injection.struct.InjectionNodes
@@ -92,14 +93,10 @@ abstract class AbstractJumpSugarApplicator(
             ))
             insns.add(JumpInsnNode(Opcodes.IFEQ, notBroken))
 
-            println("source $sourceFrame ${sourceFrame.stackSize}")
-            println("target $targetFrame ${targetFrame.stackSize}")
-
             repeat(sourceFrame.stackSize) { i ->
                 val stack = sourceFrame.getStack(sourceFrame.stackSize - 1 - i);
 
                 if (stack != BasicValue.UNINITIALIZED_VALUE) {
-                    println("pop ${stack.type}")
                     when (stack.type.size) {
                         1 -> insns.add(InsnNode(Opcodes.POP))
                         2 -> insns.add(InsnNode(Opcodes.POP2))
@@ -112,8 +109,6 @@ abstract class AbstractJumpSugarApplicator(
             repeat(targetFrame.stackSize) { i ->
                 val expected = targetFrame.getStack(i)
                 val type = expected.type!!
-
-                println("stack difference $type $i")
 
                 insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
                 insns.add(LdcInsnNode(stackIndex++))

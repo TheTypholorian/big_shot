@@ -22,13 +22,13 @@ public class TestMixin {
                     ordinal = 0
             )
     )
-    private static void main(CallbackInfo ci, @Jump(@At(
+    private static void main(CallbackInfo ci, @Jump(value = @At(
             value = "INVOKE",
             target = "Ljava/io/PrintStream;println(C)V",
             ordinal = 2
-    )) JumpHandle jump) {
+    ), shiftBeforeStack = true) JumpHandle jump) {
         jump.jump();
-        jump.setStack(0, System.out);
-        jump.setStack(1, (int) 'D');
+        //jump.setStack(0, System.out);
+        //jump.setStack(1, (int) 'D');
     }
 }
