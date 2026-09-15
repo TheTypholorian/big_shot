@@ -44,7 +44,7 @@ class JumpSugarApplicator(
 
         while (frames[index].stackSize > 0) {
             index--
-            targetNode = targetNode.previous
+            //targetNode = targetNode.previous
         }
 
         jumpTarget = targetNode as? LabelNode ?: LabelNode().also { target.method.instructions.insertBefore(targetNode, it) }

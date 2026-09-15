@@ -14,7 +14,6 @@ import net.typho.big_shot.loader.mixin_util.BreakLoopSugarApplicator
 import net.typho.big_shot.loader.mixin_util.InstructionInjectionPoint
 import net.typho.big_shot.loader.mixin_util.Jump
 import net.typho.big_shot.loader.mixin_util.JumpSugarApplicator
-import net.typho.big_shot.loader.mixin_util.switches.AddSwitchBranchInjectionInfo
 import net.typho.big_shot.loader.mixin_util.SwitchInjectionPoint
 import net.typho.big_shot.loader.util.EventGraph
 import net.typho.big_shot.loader.util.inst.RemapEvent
@@ -27,7 +26,6 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.spongepowered.asm.mixin.injection.InjectionPoint
-import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import java.lang.instrument.ClassFileTransformer
 import java.lang.instrument.Instrumentation
 import java.nio.file.Path

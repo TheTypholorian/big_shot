@@ -4,16 +4,20 @@ import com.llamalad7.mixinextras.injector.StackExtension
 import com.llamalad7.mixinextras.sugar.impl.SugarApplicator
 import com.llamalad7.mixinextras.sugar.impl.SugarParameter
 import com.llamalad7.mixinextras.sugar.impl.SugarPostProcessingExtension
+import net.typho.asm_util.insn.InsnPointer
+import net.typho.asm_util.method.MethodPointer
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import org.objectweb.asm.tree.analysis.Analyzer
 import org.objectweb.asm.tree.analysis.BasicValue
+import org.objectweb.asm.util.TraceClassVisitor
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.injection.struct.InjectionNodes
 import org.spongepowered.asm.mixin.injection.struct.Target
 import org.spongepowered.asm.util.asm.ASM
 import org.spongepowered.asm.util.asm.MixinVerifier
+import java.io.PrintWriter
 
 abstract class AbstractJumpSugarApplicator(
     info: InjectionInfo,
@@ -22,6 +26,7 @@ abstract class AbstractJumpSugarApplicator(
     companion object {
         @JvmField
         val JUMP_HANDLE_TYPE = Type.getType(JumpHandle::class.java)
+        val JUMP_HANDLE_IMPL_TYPE = Type.getType(JumpHandle.Impl::class.java)
     }
 
     protected abstract val annoName: String
@@ -41,20 +46,34 @@ abstract class AbstractJumpSugarApplicator(
         stack: StackExtension
     ) {
         target.insns.insertBefore(node.currentTarget, VarInsnNode(Opcodes.ALOAD, createJumpHandle(target, node, stack)))
+        //target.classNode.accept(TraceClassVisitor(PrintWriter(System.out)))
     }
 
     fun createJumpHandle(target: Target, node: InjectionNodes.InjectionNode, stack: StackExtension): Int {
+        val frames = Analyzer(MixinVerifier(
+            ASM.API_VERSION,
+            Type.getObjectType(target.classNode.name),
+            target.classNode.superName?.let { Type.getObjectType(it) },
+            target.classNode.interfaces?.map { Type.getObjectType(it) },
+            target.classNode.access and Opcodes.ACC_INTERFACE != 0
+        )).analyze(target.classNode.name, target.method)
+
+        val sourceFrame = frames[target.insns.indexOf(node.currentTarget) + 1]
+        val targetFrame = frames[target.insns.indexOf(jumpTarget)]
+
         val handleIndex = target.allocateLocal()
-        target.addLocalVariable(handleIndex, "jumpHandle$handleIndex", JUMP_HANDLE_TYPE.descriptor)
+        target.addLocalVariable(handleIndex, "jumpHandle$handleIndex", JUMP_HANDLE_IMPL_TYPE.descriptor)
 
         val insns = InsnList()
-        insns.add(TypeInsnNode(Opcodes.NEW, JUMP_HANDLE_TYPE.internalName))
+        insns.add(TypeInsnNode(Opcodes.NEW, JUMP_HANDLE_IMPL_TYPE.internalName))
         insns.add(InsnNode(Opcodes.DUP))
+        insns.add(LdcInsnNode(0))
+        insns.add(LdcInsnNode(targetFrame.stackSize))
         insns.add(MethodInsnNode(
             Opcodes.INVOKESPECIAL,
-            JUMP_HANDLE_TYPE.internalName,
+            JUMP_HANDLE_IMPL_TYPE.internalName,
             "<init>",
-            "()V"
+            "(II)V"
         ))
         insns.add(VarInsnNode(Opcodes.ASTORE, handleIndex))
 
@@ -67,26 +86,21 @@ abstract class AbstractJumpSugarApplicator(
             insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
             insns.add(MethodInsnNode(
                 Opcodes.INVOKEVIRTUAL,
-                JUMP_HANDLE_TYPE.internalName,
+                JUMP_HANDLE_IMPL_TYPE.internalName,
                 "hasJumped",
                 "()Z"
             ))
             insns.add(JumpInsnNode(Opcodes.IFEQ, notBroken))
 
-            val frames = Analyzer(MixinVerifier(
-                ASM.API_VERSION,
-                Type.getObjectType(target.classNode.name),
-                target.classNode.superName?.let { Type.getObjectType(it) },
-                target.classNode.interfaces?.map { Type.getObjectType(it) },
-                target.classNode.access and Opcodes.ACC_INTERFACE != 0
-            )).analyze(target.classNode.name, target.method)
+            println("source $sourceFrame ${sourceFrame.stackSize}")
+            println("target $targetFrame ${targetFrame.stackSize}")
 
-            val sourceFrame = frames[target.insns.indexOf(node.currentTarget) + 1]
-            val targetFrame = frames[target.insns.indexOf(jumpTarget)]
+            repeat(sourceFrame.stackSize) { i ->
+                val stack = sourceFrame.getStack(sourceFrame.stackSize - 1 - i);
 
-            for (i in sourceFrame.stackSize - 1 downTo targetFrame.stackSize) {
-                sourceFrame.getStack(i).type?.let { type ->
-                    when (type.size) {
+                if (stack != BasicValue.UNINITIALIZED_VALUE) {
+                    println("pop ${stack.type}")
+                    when (stack.type.size) {
                         1 -> insns.add(InsnNode(Opcodes.POP))
                         2 -> insns.add(InsnNode(Opcodes.POP2))
                         else -> throw AssertionError()
@@ -94,47 +108,62 @@ abstract class AbstractJumpSugarApplicator(
                 }
             }
 
-            repeat(targetFrame.locals) { i ->
-                val expected = targetFrame.getLocal(i)
-                val actual = sourceFrame.getLocal(i)
+            var stackIndex = 0
+            repeat(targetFrame.stackSize) { i ->
+                val expected = targetFrame.getStack(i)
+                val type = expected.type!!
 
-                if (expected == BasicValue.UNINITIALIZED_VALUE || actual != BasicValue.UNINITIALIZED_VALUE) {
-                    return@repeat
-                }
+                println("stack difference $type $i")
 
-                val type = expected.type ?: return@repeat
-
+                insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
+                insns.add(LdcInsnNode(stackIndex++))
                 when (type.sort) {
-                    Type.BOOLEAN, Type.BYTE, Type.CHAR, Type.SHORT, Type.INT -> {
-                        insns.add(InsnNode(Opcodes.ICONST_0))
-                        insns.add(VarInsnNode(Opcodes.ISTORE, i))
-                    }
-                    Type.FLOAT -> {
-                        insns.add(InsnNode(Opcodes.FCONST_0))
-                        insns.add(VarInsnNode(Opcodes.FSTORE, i))
-                    }
-                    Type.LONG -> {
-                        insns.add(InsnNode(Opcodes.LCONST_0))
-                        insns.add(VarInsnNode(Opcodes.LSTORE, i))
-                    }
-                    Type.DOUBLE -> {
-                        insns.add(InsnNode(Opcodes.DCONST_0))
-                        insns.add(VarInsnNode(Opcodes.DSTORE, i))
-                    }
+                    Type.BOOLEAN, Type.BYTE, Type.CHAR, Type.SHORT, Type.INT -> insns.add(MethodInsnNode(
+                        Opcodes.INVOKEVIRTUAL,
+                        JUMP_HANDLE_IMPL_TYPE.internalName,
+                        "stackInt",
+                        "(I)I"
+                    ))
+                    Type.LONG -> insns.add(MethodInsnNode(
+                        Opcodes.INVOKEVIRTUAL,
+                        JUMP_HANDLE_IMPL_TYPE.internalName,
+                        "stackLong",
+                        "(I)J"
+                    ))
+                    Type.FLOAT -> insns.add(MethodInsnNode(
+                        Opcodes.INVOKEVIRTUAL,
+                        JUMP_HANDLE_IMPL_TYPE.internalName,
+                        "stackFloat",
+                        "(I)F"
+                    ))
+                    Type.DOUBLE -> insns.add(MethodInsnNode(
+                        Opcodes.INVOKEVIRTUAL,
+                        JUMP_HANDLE_IMPL_TYPE.internalName,
+                        "stackDouble",
+                        "(I)D"
+                    ))
                     else -> {
-                        insns.add(InsnNode(Opcodes.ACONST_NULL))
-                        insns.add(VarInsnNode(Opcodes.ASTORE, i))
+                        insns.add(MethodInsnNode(
+                            Opcodes.INVOKEVIRTUAL,
+                            JUMP_HANDLE_IMPL_TYPE.internalName,
+                            "stackObject",
+                            "(I)Ljava/lang/Object;"
+                        ))
+                        insns.add(TypeInsnNode(
+                            Opcodes.CHECKCAST,
+                            type.internalName
+                        ))
                     }
                 }
             }
 
             insns.add(JumpInsnNode(Opcodes.GOTO, jumpTarget))
-            insns.add(notBroken)
 
+            insns.add(notBroken)
             target.insns.insert(node.currentTarget, insns)
         }
 
-        stack.extra(50)
+        stack.extra(50) // TODO
         return handleIndex
     }
 }
