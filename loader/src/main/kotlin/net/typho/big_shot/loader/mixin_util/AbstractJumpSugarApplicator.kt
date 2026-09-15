@@ -65,6 +65,7 @@ abstract class AbstractJumpSugarApplicator(
         val handleIndex = target.allocateLocal()
         target.addLocalVariable(handleIndex, "jumpHandle$handleIndex", handleImplType.descriptor)
 
+        stack.extra(2)
         val insns = InsnList()
         insns.add(TypeInsnNode(Opcodes.NEW, handleImplType.internalName))
         insns.add(InsnNode(Opcodes.DUP))
@@ -94,6 +95,7 @@ abstract class AbstractJumpSugarApplicator(
             val insns = InsnList()
             val notJumped = LabelNode()
 
+            stack.extra(1)
             insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
             insns.add(MethodInsnNode(
                 Opcodes.INVOKEVIRTUAL,
@@ -126,6 +128,7 @@ abstract class AbstractJumpSugarApplicator(
                         }
                         val id = local.findLocal(context)
 
+                        stack.extra(1)
                         insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
                         insns.add(LdcInsnNode(localIndex++))
                         when (type.sort) {
@@ -187,6 +190,7 @@ abstract class AbstractJumpSugarApplicator(
                     val expected = targetFrame.getStack(i)
                     val type = expected.type!!
 
+                    stack.extra(1)
                     insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
                     insns.add(LdcInsnNode(stackIndex++))
                     when (type.sort) {
@@ -236,9 +240,6 @@ abstract class AbstractJumpSugarApplicator(
             target.insns.insert(node.currentTarget, insns)
         }
 
-        stack.extra(50) // TODO
         target.insns.insertBefore(node.currentTarget, VarInsnNode(Opcodes.ALOAD, handleIndex))
-
-        //target.classNode.accept(TraceClassVisitor(PrintWriter(System.out)))
     }
 }
