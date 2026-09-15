@@ -3,7 +3,6 @@ package net.typho.big_shot.loader.mixin;
 import net.typho.big_shot.loader.TestMixinTarget;
 import net.typho.big_shot.loader.mixin_util.Jump;
 import net.typho.big_shot.loader.mixin_util.JumpHandle;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,16 +15,13 @@ public class TestMixin {
     @Inject(
             method = "main",
             at = @At(
-                    value = "FIELD",
-                    target = "Ljava/lang/System;out:Ljava/io/PrintStream;",
-                    opcode = Opcodes.GETSTATIC,
-                    ordinal = 0
+                    value = "INVOKE",
+                    target = "Ljava/io/PrintStream;println(Ljava/lang/String;)V"
             )
     )
     private static void main(CallbackInfo ci, @Jump(value = @At(
             value = "INVOKE",
-            target = "Ljava/io/PrintStream;println(C)V",
-            ordinal = 2
+            target = "Ljava/io/PrintStream;println(I)V"
     ), shiftBeforeStack = true) JumpHandle jump) {
         jump.jump();
         //jump.setStack(0, System.out);

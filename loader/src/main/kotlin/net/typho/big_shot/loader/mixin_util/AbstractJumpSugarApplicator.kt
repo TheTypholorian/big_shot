@@ -4,21 +4,16 @@ import com.llamalad7.mixinextras.injector.StackExtension
 import com.llamalad7.mixinextras.sugar.impl.SugarApplicator
 import com.llamalad7.mixinextras.sugar.impl.SugarParameter
 import com.llamalad7.mixinextras.sugar.impl.SugarPostProcessingExtension
-import net.typho.asm_util.insn.InsnPointer
-import net.typho.asm_util.method.MethodPointer
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import org.objectweb.asm.tree.analysis.Analyzer
 import org.objectweb.asm.tree.analysis.BasicValue
-import org.objectweb.asm.tree.analysis.Frame
-import org.objectweb.asm.util.TraceClassVisitor
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.injection.struct.InjectionNodes
 import org.spongepowered.asm.mixin.injection.struct.Target
 import org.spongepowered.asm.util.asm.ASM
 import org.spongepowered.asm.util.asm.MixinVerifier
-import java.io.PrintWriter
 
 abstract class AbstractJumpSugarApplicator(
     info: InjectionInfo,
@@ -27,6 +22,7 @@ abstract class AbstractJumpSugarApplicator(
     companion object {
         @JvmField
         val JUMP_HANDLE_TYPE = Type.getType(JumpHandle::class.java)
+        @JvmField
         val JUMP_HANDLE_IMPL_TYPE = Type.getType(JumpHandle.Impl::class.java)
     }
 
@@ -82,7 +78,7 @@ abstract class AbstractJumpSugarApplicator(
 
         SugarPostProcessingExtension.enqueuePostProcessing(this) {
             val insns = InsnList()
-            val notBroken = LabelNode()
+            val notJumped = LabelNode()
 
             insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
             insns.add(MethodInsnNode(
@@ -91,7 +87,7 @@ abstract class AbstractJumpSugarApplicator(
                 "hasJumped",
                 "()Z"
             ))
-            insns.add(JumpInsnNode(Opcodes.IFEQ, notBroken))
+            insns.add(JumpInsnNode(Opcodes.IFEQ, notJumped))
 
             repeat(sourceFrame.stackSize) { i ->
                 val stack = sourceFrame.getStack(sourceFrame.stackSize - 1 - i);
@@ -154,7 +150,7 @@ abstract class AbstractJumpSugarApplicator(
 
             insns.add(JumpInsnNode(Opcodes.GOTO, jumpTarget))
 
-            insns.add(notBroken)
+            insns.add(notJumped)
             target.insns.insert(node.currentTarget, insns)
         }
 

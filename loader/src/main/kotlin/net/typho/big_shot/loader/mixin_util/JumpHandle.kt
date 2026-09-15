@@ -8,8 +8,14 @@ interface JumpHandle {
 
     fun jump()
 
+    /**
+     * @see Jump.localsToModify
+     */
     fun setLocal(index: Int, value: Any?)
 
+    /**
+     * @see Jump.shiftBeforeStack
+     */
     fun setStack(index: Int, value: Any?)
 
     fun hasJumped(): Boolean
