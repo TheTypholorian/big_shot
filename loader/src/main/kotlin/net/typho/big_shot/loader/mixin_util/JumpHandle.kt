@@ -2,42 +2,48 @@ package net.typho.big_shot.loader.mixin_util
 
 import org.jetbrains.annotations.ApiStatus
 
-interface JumpHandle {
-    val numLocals: Int
-    val numStack: Int
-
+sealed interface JumpHandle {
     fun jump()
-
-    /**
-     * @see Jump.localsToModify
-     */
-    fun setLocal(index: Int, value: Any?)
-
-    /**
-     * @see Jump.shiftBeforeStack
-     */
-    fun setStack(index: Int, value: Any?)
 
     fun hasJumped(): Boolean
 
+    interface Complex : JumpHandle {
+        val numLocals: Int
+        val numStack: Int
+
+        /**
+         * @see Jump.localsToModify
+         */
+        fun setLocal(index: Int, value: Any?)
+
+        /**
+         * @see Jump.shiftBeforeStack
+         */
+        fun setStack(index: Int, value: Any?)
+    }
+
     @ApiStatus.Internal
-    class Impl(
-        numLocals: Int,
-        numStack: Int
-    ) : JumpHandle {
+    sealed class Impl : JumpHandle {
         private var jumped = false
-        private val locals = arrayOfNulls<Any>(numLocals)
-        private val stack = arrayOfNulls<Any>(numStack)
-        override val numLocals: Int
-            get() = locals.size
-        override val numStack: Int
-            get() = stack.size
 
         override fun jump() {
             jumped = true
         }
 
         override fun hasJumped() = jumped
+    }
+
+    @ApiStatus.Internal
+    class ComplexImpl(
+        numLocals: Int,
+        numStack: Int
+    ) : Impl(), Complex {
+        private val locals = arrayOfNulls<Any>(numLocals)
+        private val stack = arrayOfNulls<Any>(numStack)
+        override val numLocals: Int
+            get() = locals.size
+        override val numStack: Int
+            get() = stack.size
 
         override fun setLocal(index: Int, value: Any?) {
             locals[index] = value

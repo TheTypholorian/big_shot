@@ -12,15 +12,18 @@ class BreakLoopSugarApplicator(
     info: InjectionInfo,
     parameter: SugarParameter
 ) : AbstractJumpSugarApplicator(info, parameter) {
-    override val annoName: String
-        get() = "BreakLoop"
-
     private data class Loop(
         @JvmField
         val startLabel: LabelNode,
         @JvmField
         var endLabel: LabelNode? = null
     )
+
+    override fun validate(target: Target, node: InjectionNodes.InjectionNode) {
+        if (paramType != JUMP_HANDLE_TYPE) {
+            throw IllegalStateException("@BreakLoop sugar has wrong type! Expected ${JUMP_HANDLE_TYPE.className} but got ${paramType.className}")
+        }
+    }
 
     override fun prepare(
         target: Target,

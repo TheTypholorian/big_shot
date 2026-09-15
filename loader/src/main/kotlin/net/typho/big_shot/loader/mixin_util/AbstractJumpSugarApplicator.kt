@@ -4,11 +4,14 @@ import com.llamalad7.mixinextras.injector.StackExtension
 import com.llamalad7.mixinextras.sugar.impl.SugarApplicator
 import com.llamalad7.mixinextras.sugar.impl.SugarParameter
 import com.llamalad7.mixinextras.sugar.impl.SugarPostProcessingExtension
+import com.llamalad7.mixinextras.utils.CompatibilityHelper
+import com.llamalad7.mixinextras.utils.InjectorUtils
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import org.objectweb.asm.tree.analysis.Analyzer
 import org.objectweb.asm.tree.analysis.BasicValue
+import org.spongepowered.asm.mixin.injection.modify.LocalVariableDiscriminator
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.injection.struct.InjectionNodes
 import org.spongepowered.asm.mixin.injection.struct.Target
@@ -24,29 +27,30 @@ abstract class AbstractJumpSugarApplicator(
         val JUMP_HANDLE_TYPE = Type.getType(JumpHandle::class.java)
         @JvmField
         val JUMP_HANDLE_IMPL_TYPE = Type.getType(JumpHandle.Impl::class.java)
+
+        @JvmField
+        val JUMP_HANDLE_COMPLEX_TYPE = Type.getType(JumpHandle.Complex::class.java)
+        @JvmField
+        val JUMP_HANDLE_COMPLEX_IMPL_TYPE = Type.getType(JumpHandle.ComplexImpl::class.java)
     }
 
-    protected abstract val annoName: String
     protected lateinit var jumpTarget: LabelNode
+    protected var localsToModify: List<Pair<Type, LocalVariableDiscriminator>> = listOf()
 
-    override fun postProcessingPriority() = 500
-
-    override fun validate(target: Target, node: InjectionNodes.InjectionNode) {
-        if (JUMP_HANDLE_TYPE != paramType) {
-            throw IllegalStateException("@$annoName sugar has wrong type! Expected ${JUMP_HANDLE_TYPE.className} but got ${paramType.className}")
-        }
-    }
+    override fun postProcessingPriority() = 1000
 
     override fun inject(
         target: Target,
         node: InjectionNodes.InjectionNode,
         stack: StackExtension
     ) {
-        target.insns.insertBefore(node.currentTarget, VarInsnNode(Opcodes.ALOAD, createJumpHandle(target, node, stack)))
-        //target.classNode.accept(TraceClassVisitor(PrintWriter(System.out)))
-    }
+        val complex = paramType == JUMP_HANDLE_COMPLEX_TYPE
+        val handleImplType = if (complex) JUMP_HANDLE_COMPLEX_IMPL_TYPE else JUMP_HANDLE_IMPL_TYPE
 
-    fun createJumpHandle(target: Target, node: InjectionNodes.InjectionNode, stack: StackExtension): Int {
+        if (localsToModify.isNotEmpty() && !complex) {
+            throw IllegalStateException("Specified locals to modify in jump annotation but doesn't take a complex jump handle")
+        }
+
         val frames = Analyzer(MixinVerifier(
             ASM.API_VERSION,
             Type.getObjectType(target.classNode.name),
@@ -59,21 +63,31 @@ abstract class AbstractJumpSugarApplicator(
         val targetFrame = frames[target.insns.indexOf(jumpTarget)]
 
         val handleIndex = target.allocateLocal()
-        target.addLocalVariable(handleIndex, "jumpHandle$handleIndex", JUMP_HANDLE_IMPL_TYPE.descriptor)
+        target.addLocalVariable(handleIndex, "jumpHandle$handleIndex", handleImplType.descriptor)
 
         val insns = InsnList()
-        insns.add(TypeInsnNode(Opcodes.NEW, JUMP_HANDLE_IMPL_TYPE.internalName))
+        insns.add(TypeInsnNode(Opcodes.NEW, handleImplType.internalName))
         insns.add(InsnNode(Opcodes.DUP))
-        insns.add(LdcInsnNode(0))
-        insns.add(LdcInsnNode(targetFrame.stackSize))
-        insns.add(MethodInsnNode(
-            Opcodes.INVOKESPECIAL,
-            JUMP_HANDLE_IMPL_TYPE.internalName,
-            "<init>",
-            "(II)V"
-        ))
-        insns.add(VarInsnNode(Opcodes.ASTORE, handleIndex))
 
+        if (complex) {
+            insns.add(LdcInsnNode(localsToModify.size))
+            insns.add(LdcInsnNode(targetFrame.stackSize))
+            insns.add(MethodInsnNode(
+                Opcodes.INVOKESPECIAL,
+                handleImplType.internalName,
+                "<init>",
+                "(II)V"
+            ))
+        } else {
+            insns.add(MethodInsnNode(
+                Opcodes.INVOKESPECIAL,
+                handleImplType.internalName,
+                "<init>",
+                "()V"
+            ))
+        }
+
+        insns.add(VarInsnNode(Opcodes.ASTORE, handleIndex))
         target.insertBefore(node, insns)
 
         SugarPostProcessingExtension.enqueuePostProcessing(this) {
@@ -83,7 +97,7 @@ abstract class AbstractJumpSugarApplicator(
             insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
             insns.add(MethodInsnNode(
                 Opcodes.INVOKEVIRTUAL,
-                JUMP_HANDLE_IMPL_TYPE.internalName,
+                handleImplType.internalName,
                 "hasJumped",
                 "()Z"
             ))
@@ -101,49 +115,117 @@ abstract class AbstractJumpSugarApplicator(
                 }
             }
 
-            var stackIndex = 0
-            repeat(targetFrame.stackSize) { i ->
-                val expected = targetFrame.getStack(i)
-                val type = expected.type!!
+            if (complex) {
+                if (localsToModify.isNotEmpty()) {
+                    val contexts = mutableMapOf<Pair<Type, Boolean>, LocalVariableDiscriminator.Context>()
+                    var localIndex = 0
 
-                insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
-                insns.add(LdcInsnNode(stackIndex++))
-                when (type.sort) {
-                    Type.BOOLEAN, Type.BYTE, Type.CHAR, Type.SHORT, Type.INT -> insns.add(MethodInsnNode(
-                        Opcodes.INVOKEVIRTUAL,
-                        JUMP_HANDLE_IMPL_TYPE.internalName,
-                        "stackInt",
-                        "(I)I"
-                    ))
-                    Type.LONG -> insns.add(MethodInsnNode(
-                        Opcodes.INVOKEVIRTUAL,
-                        JUMP_HANDLE_IMPL_TYPE.internalName,
-                        "stackLong",
-                        "(I)J"
-                    ))
-                    Type.FLOAT -> insns.add(MethodInsnNode(
-                        Opcodes.INVOKEVIRTUAL,
-                        JUMP_HANDLE_IMPL_TYPE.internalName,
-                        "stackFloat",
-                        "(I)F"
-                    ))
-                    Type.DOUBLE -> insns.add(MethodInsnNode(
-                        Opcodes.INVOKEVIRTUAL,
-                        JUMP_HANDLE_IMPL_TYPE.internalName,
-                        "stackDouble",
-                        "(I)D"
-                    ))
-                    else -> {
-                        insns.add(MethodInsnNode(
+                    for ((type, local) in localsToModify) {
+                        val context = contexts.computeIfAbsent(type to local.isArgsOnly) {
+                            CompatibilityHelper.makeLvtContext(info, it.first, it.second, target, jumpTarget)
+                        }
+                        val id = local.findLocal(context)
+
+                        insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
+                        insns.add(LdcInsnNode(localIndex++))
+                        when (type.sort) {
+                            Type.BOOLEAN, Type.BYTE, Type.CHAR, Type.SHORT, Type.INT -> {
+                                insns.add(MethodInsnNode(
+                                    Opcodes.INVOKEVIRTUAL,
+                                    handleImplType.internalName,
+                                    "localInt",
+                                    "(I)I"
+                                ))
+                                insns.add(VarInsnNode(Opcodes.ISTORE, id))
+                            }
+                            Type.LONG -> {
+                                insns.add(MethodInsnNode(
+                                    Opcodes.INVOKEVIRTUAL,
+                                    handleImplType.internalName,
+                                    "localLong",
+                                    "(I)J"
+                                ))
+                                insns.add(VarInsnNode(Opcodes.LSTORE, id))
+                            }
+                            Type.FLOAT -> {
+                                insns.add(MethodInsnNode(
+                                    Opcodes.INVOKEVIRTUAL,
+                                    handleImplType.internalName,
+                                    "localFloat",
+                                    "(I)F"
+                                ))
+                                insns.add(VarInsnNode(Opcodes.FSTORE, id))
+                            }
+                            Type.DOUBLE -> {
+                                insns.add(MethodInsnNode(
+                                    Opcodes.INVOKEVIRTUAL,
+                                    handleImplType.internalName,
+                                    "localDouble",
+                                    "(I)D"
+                                ))
+                                insns.add(VarInsnNode(Opcodes.DSTORE, id))
+                            }
+                            else -> {
+                                insns.add(MethodInsnNode(
+                                    Opcodes.INVOKEVIRTUAL,
+                                    handleImplType.internalName,
+                                    "localObject",
+                                    "(I)Ljava/lang/Object;"
+                                ))
+                                insns.add(TypeInsnNode(
+                                    Opcodes.CHECKCAST,
+                                    type.internalName
+                                ))
+                                insns.add(VarInsnNode(Opcodes.ASTORE, id))
+                            }
+                        }
+                    }
+                }
+
+                var stackIndex = 0
+                repeat(targetFrame.stackSize) { i ->
+                    val expected = targetFrame.getStack(i)
+                    val type = expected.type!!
+
+                    insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
+                    insns.add(LdcInsnNode(stackIndex++))
+                    when (type.sort) {
+                        Type.BOOLEAN, Type.BYTE, Type.CHAR, Type.SHORT, Type.INT -> insns.add(MethodInsnNode(
                             Opcodes.INVOKEVIRTUAL,
-                            JUMP_HANDLE_IMPL_TYPE.internalName,
-                            "stackObject",
-                            "(I)Ljava/lang/Object;"
+                            handleImplType.internalName,
+                            "stackInt",
+                            "(I)I"
                         ))
-                        insns.add(TypeInsnNode(
-                            Opcodes.CHECKCAST,
-                            type.internalName
+                        Type.LONG -> insns.add(MethodInsnNode(
+                            Opcodes.INVOKEVIRTUAL,
+                            handleImplType.internalName,
+                            "stackLong",
+                            "(I)J"
                         ))
+                        Type.FLOAT -> insns.add(MethodInsnNode(
+                            Opcodes.INVOKEVIRTUAL,
+                            handleImplType.internalName,
+                            "stackFloat",
+                            "(I)F"
+                        ))
+                        Type.DOUBLE -> insns.add(MethodInsnNode(
+                            Opcodes.INVOKEVIRTUAL,
+                            handleImplType.internalName,
+                            "stackDouble",
+                            "(I)D"
+                        ))
+                        else -> {
+                            insns.add(MethodInsnNode(
+                                Opcodes.INVOKEVIRTUAL,
+                                handleImplType.internalName,
+                                "stackObject",
+                                "(I)Ljava/lang/Object;"
+                            ))
+                            insns.add(TypeInsnNode(
+                                Opcodes.CHECKCAST,
+                                type.internalName
+                            ))
+                        }
                     }
                 }
             }
@@ -155,6 +237,8 @@ abstract class AbstractJumpSugarApplicator(
         }
 
         stack.extra(50) // TODO
-        return handleIndex
+        target.insns.insertBefore(node.currentTarget, VarInsnNode(Opcodes.ALOAD, handleIndex))
+
+        //target.classNode.accept(TraceClassVisitor(PrintWriter(System.out)))
     }
 }

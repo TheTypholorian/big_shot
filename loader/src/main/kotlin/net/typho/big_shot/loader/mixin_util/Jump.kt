@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.injection.At
 /**
  * A mixin sugar annotation that allows for an arbitrary jump to any place in the target method.
  *
- * Arguments must be of type [JumpHandle].
+ * Arguments must be of type [JumpHandle] or [JumpHandle.Complex] when locals/stack values need extra handling (see [localsToModify] and [shiftBeforeStack] for more info).
  *
  * Example for usage:
  * ```java
@@ -74,17 +74,18 @@ annotation class Jump(
      * ```java
      * if (...) {
      *     int i = 10;
-     *     System.out.println(i);
+     *     float j = 5;
+     *     System.out.println(i + j);
      * }
      *
      * someMethod();
      * ```
-     * If you jump from the `someMethod` call to the `println` call, the `i` local variable will be uninitialized, which is problematic.
+     * If you jump from the `someMethod` call to the `println` call, the `i` and `j` local variables will be uninitialized, which is problematic.
      * There are two ways to deal with this.
-     * Option 1 is to instead jump before `i` is initialized, and it will be set to 10 (or whatever value is mixin'd in).
+     * Option 1 is to instead jump before the locals are initialized, and they will be set to their normal value (or whatever value is mixin'd in).
      *
-     * However, if you want `i` to be a different value (or other local variables), then use `localsToModify`.
-     * Specify each local you want to modify, then use `JumpHandle.setLocal` to modify them (`setLocal` calls will be ignored unless the jump is invoked).
+     * However, if you want a local to be a different value, then use `localsToModify`.
+     * Specify each local you want to modify, then use `JumpHandle$Complex.setLocal` to modify them (`setLocal` calls will be ignored unless the jump is invoked).
      * Note that the indices for `setLocal` are indices into the `localsToModify` array.
      *
      * Going back to the original example, your mixin would look like this for option 2:
@@ -104,17 +105,21 @@ annotation class Jump(
      *             target = "Ljava/io/PrintStream;println(Ljava/lang/String;)V"
      *         ),
      *         shiftBeforeStack = true,
-     *         localsToModify = @Local(type = int.class)
-     *     ) JumpHandle jump
+     *         localsToModify = {
+     *             @Local(type = int.class),
+     *             @Local(type = float.class)
+     *         }
+     *     ) JumpHandle.Complex jump // Note that this is a JumpHandle.Complex type, as it has the setLocal and setStack methods.
      * ) {
      *     if (shouldJump) {
      *         jump.jump();
      *         jump.setLocal(0, <value for i>);
+     *         jump.setLocal(1, <value for j>);
      *     }
      * }
      * ```
      *
-     * For compatibility, in the case that your code could have `i` be the default or be a different value, it is good design to use two separate jumps (one with option 1 and another with option 2).
+     * For compatibility, in the case that your code could have a local variable be the default or be a different value, it is good design to use two separate jumps (one with option 1 and another with option 2).
      */
     val localsToModify: Array<Local> = [],
     /**
@@ -136,13 +141,13 @@ annotation class Jump(
      * // injection here
      * System.out.println("abc");
      * ```
-     * If you had `shiftBeforeStack` set to false, then you would need to restate the stack values for `System.out` and `"abc"` in your mixin, like this:
+     * If you had `shiftBeforeStack` set to false, then you would need to use a [JumpHandle.Complex] and restate the stack values for `System.out` and `"abc"` in your mixin, like this:
      * ```java
-     * jumpHandle.jump();
-     * jumpHandle.setStack(1, System.out);
-     * jumpHandle.setStack(0, "abc");
+     * complexHandle.jump();
+     * complexHandle.setStack(0, System.out);
+     * complexHandle.setStack(1, "abc");
      * ```
-     * which would ignore other mixins changing those values. The index parameter for `setStack` is highest first.
+     * which would ignore other mixins changing those values. The index parameter for `setStack` is lowest first.
      *
      * Note that the above code can be used to combine a jump and a `@ModifyArgs`, which might be useful in some cases.
      */

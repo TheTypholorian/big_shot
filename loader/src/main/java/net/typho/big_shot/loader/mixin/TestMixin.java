@@ -1,5 +1,6 @@
 package net.typho.big_shot.loader.mixin;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import net.typho.big_shot.loader.TestMixinTarget;
 import net.typho.big_shot.loader.mixin_util.Jump;
 import net.typho.big_shot.loader.mixin_util.JumpHandle;
@@ -22,8 +23,9 @@ public class TestMixin {
     private static void main(CallbackInfo ci, @Jump(value = @At(
             value = "INVOKE",
             target = "Ljava/io/PrintStream;println(I)V"
-    ), shiftBeforeStack = true) JumpHandle jump) {
+    ), shiftBeforeStack = true, localsToModify = @Local(type = int.class)) JumpHandle.Complex jump) {
         jump.jump();
+        jump.setLocal(0, 15);
         //jump.setStack(0, System.out);
         //jump.setStack(1, (int) 'D');
     }

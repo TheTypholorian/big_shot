@@ -8,6 +8,7 @@ import org.objectweb.asm.tree.AnnotationNode
 import org.objectweb.asm.tree.LabelNode
 import org.objectweb.asm.tree.analysis.Analyzer
 import org.spongepowered.asm.mixin.injection.InjectionPoint
+import org.spongepowered.asm.mixin.injection.modify.LocalVariableDiscriminator
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.injection.struct.InjectionNodes
 import org.spongepowered.asm.mixin.injection.struct.Target
@@ -20,8 +21,11 @@ class JumpSugarApplicator(
     info: InjectionInfo,
     parameter: SugarParameter
 ) : AbstractJumpSugarApplicator(info, parameter) {
-    override val annoName: String
-        get() = "Jump"
+    override fun validate(target: Target, node: InjectionNodes.InjectionNode) {
+        if (!(paramType == JUMP_HANDLE_TYPE || paramType == JUMP_HANDLE_COMPLEX_TYPE)) {
+            throw IllegalStateException("@Jump sugar has wrong type! Expected ${JUMP_HANDLE_TYPE.className} but got ${paramType.className}")
+        }
+    }
 
     override fun prepare(
         target: Target,
@@ -31,6 +35,8 @@ class JumpSugarApplicator(
         val targets = mutableListOf<AbstractInsnNode>()
         injectionPoint.find(target.method.desc, target.method.instructions, targets)
         var targetNode = targets.singleOrNull() ?: throw IllegalStateException("@Jump must specify exactly one target, got ${targets.size}")
+
+        localsToModify = Annotations.getValue<AnnotationNode>(sugar, "localsToModify", false).map { Annotations.getValue(it, "type", Type.VOID_TYPE) to LocalVariableDiscriminator.parse(it) }
 
         if (Annotations.getValue<Boolean?>(sugar, "shiftBeforeStack") == true) {
             val frames = Analyzer(MixinVerifier(
