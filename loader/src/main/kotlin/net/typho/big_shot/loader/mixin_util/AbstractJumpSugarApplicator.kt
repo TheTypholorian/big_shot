@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.sugar.impl.SugarApplicator
 import com.llamalad7.mixinextras.sugar.impl.SugarParameter
 import com.llamalad7.mixinextras.sugar.impl.SugarPostProcessingExtension
 import com.llamalad7.mixinextras.utils.CompatibilityHelper
-import com.llamalad7.mixinextras.utils.InjectorUtils
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
@@ -121,12 +120,17 @@ abstract class AbstractJumpSugarApplicator(
                 if (localsToModify.isNotEmpty()) {
                     val contexts = mutableMapOf<Pair<Type, Boolean>, LocalVariableDiscriminator.Context>()
                     var localIndex = 0
+                    val indices = mutableSetOf<Int>()
 
                     for ((type, local) in localsToModify) {
                         val context = contexts.computeIfAbsent(type to local.isArgsOnly) {
                             CompatibilityHelper.makeLvtContext(info, it.first, it.second, target, jumpTarget)
                         }
                         val id = local.findLocal(context)
+
+                        if (!indices.add(id)) {
+                            throw IllegalStateException("Specified the same local to modify more than once in jump")
+                        }
 
                         stack.extra(1)
                         insns.add(VarInsnNode(Opcodes.ALOAD, handleIndex))
