@@ -23,13 +23,12 @@ public class TestMixin {
             )
     )
     private static void main(CallbackInfo ci, @Jump(@At(
-            value = "FIELD",
-            target = "Ljava/lang/System;out:Ljava/io/PrintStream;",
-            opcode = Opcodes.GETSTATIC,
+            value = "INVOKE",
+            target = "Ljava/io/PrintStream;println(C)V",
             ordinal = 2
     )) JumpHandle jump) {
         jump.jump();
-        //jump.setStack(0, System.out);
-        //jump.setStack(1, "w");
+        jump.setStack(0, System.out);
+        jump.setStack(1, (int) 'D');
     }
 }

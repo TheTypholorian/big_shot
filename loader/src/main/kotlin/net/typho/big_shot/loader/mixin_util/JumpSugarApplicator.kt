@@ -31,22 +31,7 @@ class JumpSugarApplicator(
         val targets = mutableListOf<AbstractInsnNode>()
         injectionPoint.find(target.method.desc, target.method.instructions, targets)
 
-        var targetNode = targets.singleOrNull() ?: throw IllegalStateException("@Jump must specify exactly one target, got ${targets.size}")
-        val frames = Analyzer(MixinVerifier(
-            ASM.API_VERSION,
-            Type.getObjectType(target.classNode.name),
-            target.classNode.superName?.let { Type.getObjectType(it) },
-            target.classNode.interfaces?.map { Type.getObjectType(it) },
-            target.classNode.access and Opcodes.ACC_INTERFACE != 0
-        )).analyze(target.classNode.name, target.method)
-
-        var index = target.method.instructions.indexOf(targetNode)
-
-        while (frames[index].stackSize > 0) {
-            index--
-            //targetNode = targetNode.previous
-        }
-
+        val targetNode = targets.singleOrNull() ?: throw IllegalStateException("@Jump must specify exactly one target, got ${targets.size}")
         jumpTarget = targetNode as? LabelNode ?: LabelNode().also { target.method.instructions.insertBefore(targetNode, it) }
     }
 }
