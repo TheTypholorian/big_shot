@@ -14,6 +14,7 @@ import net.typho.big_shot.loader.mixin_util.BreakLoopSugarApplicator
 import net.typho.big_shot.loader.mixin_util.Jump
 import net.typho.big_shot.loader.mixin_util.JumpSugarApplicator
 import net.typho.big_shot.loader.mixin_util.SwitchInjectionPoint
+import net.typho.big_shot.loader.mixin_util.TypeInjectionPoint
 import net.typho.big_shot.loader.util.EventGraph
 import net.typho.big_shot.loader.util.inst.RemapEvent
 import net.typho.big_shot.loader.util.inst.TransformEvent
@@ -164,6 +165,7 @@ object BigShotLoader {
     @JvmStatic
     fun registerInjectionPoints() {
         InjectionPoint.register(SwitchInjectionPoint::class.java)
+        InjectionPoint.register(TypeInjectionPoint::class.java)
     }
 
     @Suppress("unused")

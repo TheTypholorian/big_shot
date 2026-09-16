@@ -37,6 +37,9 @@ dependencies {
     jij(implementation(project(":data")) { // TODO
         isTransitive = false
     })
+    jij(implementation("net.fabricmc:class-tweaker:0.3.0") {
+        isTransitive = false
+    })
 }
 
 kotlin {

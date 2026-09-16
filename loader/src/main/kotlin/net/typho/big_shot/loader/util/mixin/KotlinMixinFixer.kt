@@ -26,7 +26,7 @@ object KotlinMixinFixer {
     @Suppress("UNCHECKED_CAST")
     @JvmStatic
     fun fix(node: ClassNode): Boolean {
-        val metadata = KotlinClassMetadata.readLenient(node.visibleAnnotations?.firstNotNullOfOrNull { it.kotlinMetadata } ?: return false)
+        val metadata = KotlinClassMetadata.readLenient(node.kotlinMetadata ?: return false)
         var changed = false
 
         if (metadata !is KotlinClassMetadata.Class) {
@@ -34,20 +34,40 @@ object KotlinMixinFixer {
             return false
         }
 
-        if (metadata.kmClass.kind == ClassKind.OBJECT) {
-            changed = true
-            node.fields.removeIf { it.name == "INSTANCE" }
-            MethodPointer.method()
-                .name("<clinit>")
-                .findOrThrow(node) { method ->
-                    method.instructions.splice(
-                        InsnPointer.type(node.name),
-                        InsnPointer.fieldSetStatic()
-                            .owner(node.name)
-                            .name("INSTANCE")
-                            .desc("L${node.name};")
-                    )
-                }
+        when (metadata.kmClass.kind) {
+            ClassKind.OBJECT -> {
+                changed = true
+                node.fields.removeIf { it.name == "INSTANCE" }
+                MethodPointer.method()
+                    .name("<clinit>")
+                    .findOrThrow(node) { method ->
+                        method.instructions.splice(
+                            InsnPointer.type(node.name),
+                            InsnPointer.fieldSetStatic()
+                                .owner(node.name)
+                                .name("INSTANCE")
+                                .desc("L${node.name};")
+                        )
+                    }
+            }
+            ClassKind.ENUM_CLASS -> {
+                changed = true
+                node.fields.removeIf { it.desc == "Lkotlin/enums/EnumEntries;" && it.access and Opcodes.ACC_SYNTHETIC != 0 }
+                node.methods.removeIf { it.name == "getEntries" && it.desc == "()Lkotlin/enums/EnumEntries;" }
+                MethodPointer.method()
+                    .name("<clinit>")
+                    .findOrThrow(node) { method ->
+                        method.instructions.splice(
+                            InsnPointer.fieldGetStatic()
+                                .owner(node.name)
+                                .desc("[L${node.name};"),
+                            InsnPointer.fieldSetStatic()
+                                .owner(node.name)
+                                .desc("Lkotlin/enums/EnumEntries;")
+                        )
+                    }
+            }
+            else -> {}
         }
 
         metadata.kmClass.companionObject?.let { companion ->

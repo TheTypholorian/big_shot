@@ -5,6 +5,8 @@
   "mixins": [],
   "client": [
     "MinecraftMixin",
+    "client.rendering.ssbo.GlCommandEncoderMixin",
+    "client.rendering.ssbo.GlProgramMixin",
     "client.rendering.ssbo.UniformTypeMixin"
   ],
   "injectors": {

@@ -31,7 +31,7 @@ object BuiltinClassTweaker {
             )
             visitMethod(
                 "inject",
-                $$"(Lorg/spongepowered/asm/mixin/injection/struct/Target;Lorg/spongepowered/asm/mixin/injection/struct/InjectionNodes$InjectionNode;)V",
+                $$"(Lorg/spongepowered/asm/mixin/injection/struct/Target;Lorg/spongepowered/asm/mixin/injection/struct/InjectionNodes$InjectionNode;Lcom/llamalad7/mixinextras/injector/StackExtension;)V",
                 AccessWidenerVisitor.AccessType.ACCESSIBLE,
                 false
             )
@@ -50,6 +50,31 @@ object BuiltinClassTweaker {
                 false
             )
         }
+        visitAccessWidener("com/mojang/blaze3d/opengl/Uniform")!!.apply {
+            visitClass(AccessWidenerVisitor.AccessType.EXTENDABLE, false)
+        }
+        visitAccessWidener("com/mojang/blaze3d/opengl/GlRenderPass")!!.apply {
+            visitClass(AccessWidenerVisitor.AccessType.ACCESSIBLE, false)
+            visitField(
+                "uniforms",
+                "Ljava/util/HashMap;",
+                AccessWidenerVisitor.AccessType.ACCESSIBLE,
+                false
+            )
+            visitField(
+                "dirtyUniforms",
+                "Ljava/util/Set;",
+                AccessWidenerVisitor.AccessType.ACCESSIBLE,
+                false
+            )
+            visitField(
+                "pipeline",
+                "Lcom/mojang/blaze3d/opengl/GlRenderPipeline;",
+                AccessWidenerVisitor.AccessType.ACCESSIBLE,
+                false
+            )
+        }
+        visitEnumExtension("com/mojang/blaze3d/shaders/UniformType", "BIG_SHOT_SSBO", true)
     }
 
     @JvmStatic
