@@ -23,7 +23,7 @@ sealed interface JumpHandle {
     }
 
     @ApiStatus.Internal
-    sealed class Impl : JumpHandle {
+    class Impl : JumpHandle {
         private var jumped = false
 
         override fun jump() {
@@ -37,13 +37,20 @@ sealed interface JumpHandle {
     class ComplexImpl(
         numLocals: Int,
         numStack: Int
-    ) : Impl(), Complex {
+    ) : Complex {
+        private var jumped = false
         private val locals = arrayOfNulls<Any>(numLocals)
         private val stack = arrayOfNulls<Any>(numStack)
         override val numLocals: Int
             get() = locals.size
         override val numStack: Int
             get() = stack.size
+
+        override fun jump() {
+            jumped = true
+        }
+
+        override fun hasJumped() = jumped
 
         override fun setLocal(index: Int, value: Any?) {
             locals[index] = value

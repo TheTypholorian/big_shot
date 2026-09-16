@@ -10,12 +10,16 @@ import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import org.objectweb.asm.tree.analysis.Analyzer
 import org.objectweb.asm.tree.analysis.BasicValue
+import org.objectweb.asm.tree.analysis.Frame
+import org.objectweb.asm.util.TraceClassVisitor
 import org.spongepowered.asm.mixin.injection.modify.LocalVariableDiscriminator
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.injection.struct.InjectionNodes
 import org.spongepowered.asm.mixin.injection.struct.Target
 import org.spongepowered.asm.util.asm.ASM
 import org.spongepowered.asm.util.asm.MixinVerifier
+import java.io.PrintWriter
+import kotlin.collections.get
 
 abstract class AbstractJumpSugarApplicator(
     info: InjectionInfo,
@@ -33,10 +37,27 @@ abstract class AbstractJumpSugarApplicator(
         val JUMP_HANDLE_COMPLEX_IMPL_TYPE = Type.getType(JumpHandle.ComplexImpl::class.java)
     }
 
-    protected lateinit var jumpTarget: LabelNode
+    protected lateinit var jumpTarget: AbstractInsnNode
     protected var localsToModify: List<Pair<Type, LocalVariableDiscriminator>> = listOf()
+    protected lateinit var sourceFrame: Frame<BasicValue>
+    protected lateinit var targetFrame: Frame<BasicValue>
 
     override fun postProcessingPriority() = 1000
+
+    protected fun analyze(target: Target): Array<Frame<BasicValue>> {
+        return Analyzer(MixinVerifier(
+            ASM.API_VERSION,
+            Type.getObjectType(target.classNode.name),
+            target.classNode.superName?.let { Type.getObjectType(it) },
+            target.classNode.interfaces?.map { Type.getObjectType(it) },
+            target.classNode.access and Opcodes.ACC_INTERFACE != 0
+        )).analyze(target.classNode.name, target.method)
+    }
+
+    protected fun loadFrames(frames: Array<Frame<BasicValue>>, target: Target, node: InjectionNodes.InjectionNode) {
+        sourceFrame = frames[target.insns.indexOf(node.currentTarget)]
+        targetFrame = frames[target.insns.indexOf(jumpTarget)]
+    }
 
     override fun inject(
         target: Target,
@@ -50,16 +71,7 @@ abstract class AbstractJumpSugarApplicator(
             throw IllegalStateException("Specified locals to modify in jump annotation but doesn't take a complex jump handle")
         }
 
-        val frames = Analyzer(MixinVerifier(
-            ASM.API_VERSION,
-            Type.getObjectType(target.classNode.name),
-            target.classNode.superName?.let { Type.getObjectType(it) },
-            target.classNode.interfaces?.map { Type.getObjectType(it) },
-            target.classNode.access and Opcodes.ACC_INTERFACE != 0
-        )).analyze(target.classNode.name, target.method)
-
-        val sourceFrame = frames[target.insns.indexOf(node.currentTarget) + 1]
-        val targetFrame = frames[target.insns.indexOf(jumpTarget)]
+        val jumpTarget = jumpTarget as? LabelNode ?: LabelNode().also { target.method.instructions.insertBefore(jumpTarget, it) }
 
         val handleIndex = target.allocateLocal()
         target.addLocalVariable(handleIndex, "jumpHandle$handleIndex", handleImplType.descriptor)
@@ -105,7 +117,7 @@ abstract class AbstractJumpSugarApplicator(
             insns.add(JumpInsnNode(Opcodes.IFEQ, notJumped))
 
             repeat(sourceFrame.stackSize) { i ->
-                val stack = sourceFrame.getStack(sourceFrame.stackSize - 1 - i);
+                val stack = sourceFrame.getStack(sourceFrame.stackSize - 1 - i)
 
                 if (stack != BasicValue.UNINITIALIZED_VALUE) {
                     when (stack.type.size) {
@@ -245,5 +257,6 @@ abstract class AbstractJumpSugarApplicator(
         }
 
         target.insns.insertBefore(node.currentTarget, VarInsnNode(Opcodes.ALOAD, handleIndex))
+        //target.classNode.accept(TraceClassVisitor(PrintWriter(System.out)))
     }
 }

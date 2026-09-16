@@ -67,5 +67,6 @@ class BreakLoopSugarApplicator(
         }
         val loop = if (depth == -1) loopStack.last() else loopStack[depth]
         jumpTarget = loop.endLabel!!
+        loadFrames(analyze(target), target, node)
     }
 }
