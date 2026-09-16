@@ -1,4 +1,4 @@
-package net.typho.big_shot.data
+package net.typho.big_shot.data.env
 
 import net.typho.data_util.codec.Codec
 

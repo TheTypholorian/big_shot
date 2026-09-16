@@ -5,7 +5,7 @@
   "mixins": [],
   "client": [
     "MinecraftMixin",
-    "TestMixin"
+    "client.rendering.ssbo.UniformTypeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

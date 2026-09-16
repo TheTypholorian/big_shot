@@ -30,6 +30,7 @@ dependencies {
 
     implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}")
     implementation(project(":data")) // TODO
+    implementation("net.fabricmc:class-tweaker:0.3.0")
 }
 
 gradlePlugin {

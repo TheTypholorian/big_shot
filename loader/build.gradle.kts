@@ -10,6 +10,7 @@ version = "1.0.0"
 repositories {
     mavenCentral()
     maven("https://repo.spongepowered.org/repository/maven-public/")
+    maven("https://maven.fabricmc.net")
     maven("https://typho.net/maven")
 }
 
@@ -17,6 +18,7 @@ val jij = configurations.create("jij")
 
 dependencies {
     compileOnly("net.fabricmc:fabric-loader:0.19.3")
+    compileOnly("net.fabricmc:class-tweaker:0.3.0")
 
     jij(kotlin("stdlib"))
     jij(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")!!)
@@ -30,6 +32,9 @@ dependencies {
     compileOnly("org.apache.commons:commons-lang3:3.20.0")
     extraAccessWiden("io.github.llamalad7:mixinextras-fabric:0.5.5")
     jij(implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {
+        isTransitive = false
+    })
+    jij(implementation(project(":data")) { // TODO
         isTransitive = false
     })
 }

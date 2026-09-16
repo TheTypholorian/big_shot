@@ -1,6 +1,5 @@
 package net.typho.big_shot.data.env
 
-import net.typho.big_shot.data.Dist
 import org.semver4j.Semver
 
 data class Environment @JvmOverloads constructor(

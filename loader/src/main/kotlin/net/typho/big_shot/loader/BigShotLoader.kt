@@ -2,16 +2,15 @@ package net.typho.big_shot.loader
 
 import com.llamalad7.mixinextras.lib.apache.commons.tuple.Pair
 import com.llamalad7.mixinextras.sugar.impl.SugarApplicator
-import net.typho.asm_util.ASMUtil
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.error.ClassVisitException
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
+import net.typho.big_shot.data.ct.BuiltinClassTweaker
 import net.typho.big_shot.loader.constant.TransformEventNames
 import net.typho.big_shot.loader.mixin_util.BreakLoop
 import net.typho.big_shot.loader.mixin_util.BreakLoopSugarApplicator
-import net.typho.big_shot.loader.mixin_util.InstructionInjectionPoint
 import net.typho.big_shot.loader.mixin_util.Jump
 import net.typho.big_shot.loader.mixin_util.JumpSugarApplicator
 import net.typho.big_shot.loader.mixin_util.SwitchInjectionPoint
@@ -49,22 +48,11 @@ object BigShotLoader {
     val DEBUG_PATH = Paths.get(".big_shot_debug")
 
     init {
-        TRANSFORM_EVENTS.register(TransformEventNames.ACCESS_WIDENERS) { type, info, className ->
-            when (className) {
-                "com/llamalad7/mixinextras/sugar/impl/SugarApplicator" -> {
-                    info.node.access = ASMUtil.accessPublic(info.node.access)
-                    info.node.fields.forEach { it.access = ASMUtil.accessPublic(it.access) }
-                    info.node.methods.forEach { it.access = ASMUtil.accessPublic(it.access) }
-                    info.markChanged()
-                }
-                "com/llamalad7/mixinextras/sugar/impl/SugarPostProcessingExtension" -> {
-                    MethodPointer.method().name("enqueuePostProcessing").find(info.node).forEach { it.access = ASMUtil.accessPublic(it.access) }
-                    info.markChanged()
-                }
-            }
+        TRANSFORM_EVENTS.register(TransformEventNames.EARLY_ACCESS_WIDENER) { type, info ->
+            BuiltinClassTweaker.apply(info)
         }
-        TRANSFORM_EVENTS.register(TransformEventNames.MIXIN_UTILS) { type, info, className ->
-            when (className) {
+        TRANSFORM_EVENTS.register(TransformEventNames.MIXIN_UTILS) { type, info ->
+            when (info.className) {
                 "com/llamalad7/mixinextras/sugar/impl/SugarApplicator" -> {
                     MethodPointer.method().name("<clinit>").findOrThrow(info.node) { method ->
                         InsnPointer.methodCallStatic().owner("java/util/Arrays").name("asList").ordinal(0).findOrThrow(method.instructions) { insn ->
@@ -77,20 +65,6 @@ object BigShotLoader {
                         }
                     }
                     info.markChanged()
-                }
-                "org/spongepowered/asm/mixin/injection/struct/InjectionInfo" -> {
-                    MethodPointer.method().name("<clinit>").findOrThrow(info.node) { method ->
-                        InsnPointer.simple().opcode(Opcodes.RETURN).findOrThrow(method.instructions) { insn ->
-                            method.instructions.insertBefore(insn, MethodInsnNode(
-                                Opcodes.INVOKESTATIC,
-                                "net/typho/big_shot/loader/BigShotLoader",
-                                "registerInjectionInfos",
-                                "()V"
-                            ))
-                        }
-                    }
-                    info.markChanged()
-                    info.computeFrames()
                 }
                 "org/spongepowered/asm/mixin/injection/InjectionPoint" -> {
                     MethodPointer.method().name("<clinit>").findOrThrow(info.node) { method ->
@@ -107,15 +81,15 @@ object BigShotLoader {
                     info.computeFrames()
                 }
             }
-        }.after(TransformEventNames.ACCESS_WIDENERS)
-        TRANSFORM_EVENTS.register(TransformEventNames.KOTLIN_MIXIN_FIXER) { type, info, className ->
+        }.after(TransformEventNames.EARLY_ACCESS_WIDENER)
+        TRANSFORM_EVENTS.register(TransformEventNames.KOTLIN_MIXIN_FIXER) { type, info ->
             if (type == TransformType.MIXIN) {
                 if (KotlinMixinFixer.fix(info.node)) {
                     info.markChanged()
                 }
             }
         }
-        TRANSFORM_EVENTS.register(TransformEventNames.REMAP) { type, info, className ->
+        TRANSFORM_EVENTS.register(TransformEventNames.REMAP) { type, info ->
             val newNode = ClassNode()
             val visitor = REMAP_EVENTS.resolve().foldRight(newNode as ClassVisitor) { event, visitor ->
                 val remapper = event.event.createRemapper(info)
@@ -164,7 +138,7 @@ object BigShotLoader {
 
                     TRANSFORM_EVENTS.execute { id, event ->
                         info.fallbackErrorSource = id
-                        event.transform(TransformType.CLASS, info, className)
+                        event.transform(TransformType.CLASS, info)
                     }
 
                     return info.compile(::debugSaveClass)
@@ -186,16 +160,10 @@ object BigShotLoader {
         )
     }
 
-    @Suppress("unused")
-    @JvmStatic
-    fun registerInjectionInfos() {
-    }
-
     @Suppress("unused", "deprecation", "RedundantSuppression")
     @JvmStatic
     fun registerInjectionPoints() {
         InjectionPoint.register(SwitchInjectionPoint::class.java)
-        InjectionPoint.register(InstructionInjectionPoint::class.java)
     }
 
     @Suppress("unused")
@@ -206,7 +174,7 @@ object BigShotLoader {
 
             TRANSFORM_EVENTS.execute { id, event ->
                 info.fallbackErrorSource = id
-                event.transform(TransformType.MIXIN, info, node.name)
+                event.transform(TransformType.MIXIN, info)
             }
 
             info.checkErrors()
