@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.mixin.client.rendering.buffer
+package net.typho.big_shot.loader.client.rendering.buffer
 
 @JvmInline
 value class GpuBufferUsage(val flags: Int) {

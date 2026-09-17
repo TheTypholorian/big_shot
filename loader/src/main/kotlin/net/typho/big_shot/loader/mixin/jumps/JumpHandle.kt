@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.mixin_util
+package net.typho.big_shot.loader.mixin.jumps
 
 import org.jetbrains.annotations.ApiStatus
 

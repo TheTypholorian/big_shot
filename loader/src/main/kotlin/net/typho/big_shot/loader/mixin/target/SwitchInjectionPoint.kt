@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.mixin_util
+package net.typho.big_shot.loader.mixin.target
 
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.AbstractInsnNode

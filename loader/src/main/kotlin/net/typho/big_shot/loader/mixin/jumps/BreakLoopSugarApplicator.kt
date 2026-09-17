@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.mixin_util
+package net.typho.big_shot.loader.mixin.jumps
 
 import com.llamalad7.mixinextras.sugar.impl.SugarParameter
 import org.objectweb.asm.tree.JumpInsnNode

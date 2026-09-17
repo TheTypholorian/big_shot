@@ -1,12 +1,9 @@
-package net.typho.big_shot.loader.mixin_util
+package net.typho.big_shot.loader.mixin.jumps
 
 import com.llamalad7.mixinextras.sugar.impl.SugarParameter
-import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.AnnotationNode
-import org.objectweb.asm.tree.LabelNode
-import org.objectweb.asm.tree.analysis.Analyzer
 import org.spongepowered.asm.mixin.injection.InjectionPoint
 import org.spongepowered.asm.mixin.injection.modify.LocalVariableDiscriminator
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
@@ -14,8 +11,6 @@ import org.spongepowered.asm.mixin.injection.struct.InjectionNodes
 import org.spongepowered.asm.mixin.injection.struct.Target
 import org.spongepowered.asm.mixin.struct.AnnotatedMethodInfo
 import org.spongepowered.asm.util.Annotations
-import org.spongepowered.asm.util.asm.ASM
-import org.spongepowered.asm.util.asm.MixinVerifier
 
 class JumpSugarApplicator(
     info: InjectionInfo,

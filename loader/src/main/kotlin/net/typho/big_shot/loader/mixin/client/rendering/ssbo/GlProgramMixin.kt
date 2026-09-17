@@ -8,8 +8,8 @@ import com.mojang.blaze3d.opengl.Uniform
 import com.mojang.blaze3d.pipeline.BindGroupLayout
 import com.mojang.blaze3d.shaders.UniformType
 import net.typho.big_shot.loader.client.rendering.ssbo.SsboUniform
-import net.typho.big_shot.loader.mixin_util.Jump
-import net.typho.big_shot.loader.mixin_util.JumpHandle
+import net.typho.big_shot.loader.mixin.jumps.Jump
+import net.typho.big_shot.loader.mixin.jumps.JumpHandle
 import org.lwjgl.opengl.GL43.GL_SHADER_STORAGE_BLOCK
 import org.lwjgl.opengl.GL43.glGetProgramResourceIndex
 import org.lwjgl.opengl.GL43.glShaderStorageBlockBinding

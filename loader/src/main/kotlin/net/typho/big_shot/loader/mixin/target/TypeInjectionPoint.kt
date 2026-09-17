@@ -1,7 +1,6 @@
-package net.typho.big_shot.loader.mixin_util
+package net.typho.big_shot.loader.mixin.target
 
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.InsnList
 import org.objectweb.asm.tree.TypeInsnNode

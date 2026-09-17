@@ -9,12 +9,12 @@ import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.data.ct.BuiltinClassTweaker
 import net.typho.big_shot.loader.constant.TransformEventNames
-import net.typho.big_shot.loader.mixin_util.BreakLoop
-import net.typho.big_shot.loader.mixin_util.BreakLoopSugarApplicator
-import net.typho.big_shot.loader.mixin_util.Jump
-import net.typho.big_shot.loader.mixin_util.JumpSugarApplicator
-import net.typho.big_shot.loader.mixin_util.SwitchInjectionPoint
-import net.typho.big_shot.loader.mixin_util.TypeInjectionPoint
+import net.typho.big_shot.loader.mixin.jumps.BreakLoop
+import net.typho.big_shot.loader.mixin.jumps.BreakLoopSugarApplicator
+import net.typho.big_shot.loader.mixin.jumps.Jump
+import net.typho.big_shot.loader.mixin.jumps.JumpSugarApplicator
+import net.typho.big_shot.loader.mixin.target.SwitchInjectionPoint
+import net.typho.big_shot.loader.mixin.target.TypeInjectionPoint
 import net.typho.big_shot.loader.util.EventGraph
 import net.typho.big_shot.loader.util.inst.RemapEvent
 import net.typho.big_shot.loader.util.inst.TransformEvent
@@ -24,8 +24,13 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.InsnList
+import org.objectweb.asm.tree.JumpInsnNode
+import org.objectweb.asm.tree.LabelNode
 import org.objectweb.asm.tree.MethodInsnNode
+import org.objectweb.asm.tree.VarInsnNode
 import org.spongepowered.asm.mixin.injection.InjectionPoint
+import org.spongepowered.asm.mixin.transformer.ClassInfo
 import java.lang.instrument.ClassFileTransformer
 import java.lang.instrument.Instrumentation
 import java.nio.file.Path
@@ -52,7 +57,45 @@ object BigShotLoader {
         TRANSFORM_EVENTS.register(TransformEventNames.EARLY_ACCESS_WIDENER) { type, info ->
             BuiltinClassTweaker.apply(info)
         }
-        TRANSFORM_EVENTS.register(TransformEventNames.MIXIN_UTILS) { type, info ->
+        TRANSFORM_EVENTS.register(TransformEventNames.BUT_I_WANT_THAT_IN_MY_MIXIN_PACKAGE) { type, info ->
+            when (info.className) {
+                "org/spongepowered/asm/mixin/transformer/MixinProcessor" -> {
+                    MethodPointer.method().name("applyMixins").findOrThrow(info.node) { method ->
+                        val hasSuperClass = InsnPointer.methodCall()
+                            .owner("org/spongepowered/asm/mixin/transformer/ClassInfo")
+                            .name("hasSuperClass")
+                            .desc("(Ljava/lang/Class;)Z")
+                            .ordinal(0)
+                            .findOrThrow(method.instructions)
+                        val insn = InsnPointer.localOperation()
+                            .lastOrdinal()
+                            .before(hasSuperClass)
+                            .findOrThrow(method.instructions)
+
+                        method.instructions.insertBefore(insn, InsnList().apply {
+                            val label = InsnPointer.jump()
+                                .opcode(Opcodes.IFNE)
+                                .ordinal(0)
+                                .after(hasSuperClass)
+                                .findOrThrow(method.instructions)
+                                .label
+
+                            add(VarInsnNode(Opcodes.ALOAD, 9))
+                            add(MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "net/typho/big_shot/loader/BigShotLoader",
+                                "bypassMixinPackageRestriction",
+                                "(Lorg/spongepowered/asm/mixin/transformer/ClassInfo;)Z"
+                            ))
+                            add(JumpInsnNode(Opcodes.IFNE, label))
+                        })
+                    }
+                    info.markChanged()
+                    info.computeFrames()
+                }
+            }
+        }
+        TRANSFORM_EVENTS.register(TransformEventNames.INJECT_MIXIN_UTILS) { type, info ->
             when (info.className) {
                 "com/llamalad7/mixinextras/sugar/impl/SugarApplicator" -> {
                     MethodPointer.method().name("<clinit>").findOrThrow(info.node) { method ->
@@ -82,7 +125,7 @@ object BigShotLoader {
                     info.computeFrames()
                 }
             }
-        }.after(TransformEventNames.EARLY_ACCESS_WIDENER)
+        }
         TRANSFORM_EVENTS.register(TransformEventNames.KOTLIN_MIXIN_FIXER) { type, info ->
             if (type == TransformType.MIXIN) {
                 if (KotlinMixinFixer.fix(info.node)) {
@@ -167,6 +210,10 @@ object BigShotLoader {
         InjectionPoint.register(SwitchInjectionPoint::class.java)
         InjectionPoint.register(TypeInjectionPoint::class.java)
     }
+
+    @Suppress("unused")
+    @JvmStatic
+    fun bypassMixinPackageRestriction(info: ClassInfo): Boolean = info.name.startsWith("net/typho/big_shot")
 
     @Suppress("unused")
     @JvmStatic

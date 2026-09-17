@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.mixin_util
+package net.typho.big_shot.loader.mixin.jumps
 
 import com.llamalad7.mixinextras.injector.StackExtension
 import com.llamalad7.mixinextras.sugar.impl.SugarApplicator
@@ -11,15 +11,12 @@ import org.objectweb.asm.tree.*
 import org.objectweb.asm.tree.analysis.Analyzer
 import org.objectweb.asm.tree.analysis.BasicValue
 import org.objectweb.asm.tree.analysis.Frame
-import org.objectweb.asm.util.TraceClassVisitor
 import org.spongepowered.asm.mixin.injection.modify.LocalVariableDiscriminator
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import org.spongepowered.asm.mixin.injection.struct.InjectionNodes
 import org.spongepowered.asm.mixin.injection.struct.Target
 import org.spongepowered.asm.util.asm.ASM
 import org.spongepowered.asm.util.asm.MixinVerifier
-import java.io.PrintWriter
-import kotlin.collections.get
 
 abstract class AbstractJumpSugarApplicator(
     info: InjectionInfo,
