@@ -3,7 +3,6 @@ package net.typho.big_shot.loader.transform.impl
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
-import net.typho.big_shot.loader.constant.TransformEventNames
 import net.typho.big_shot.loader.transform.TransformEvent
 import net.typho.big_shot.loader.transform.TransformType
 import net.typho.big_shot.loader.util.EventGraph
@@ -15,7 +14,7 @@ import org.objectweb.asm.tree.VarInsnNode
 
 object ButIWantThatInMyMixinPackageTransform : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
     override val id: String
-        get() = TransformEventNames.BUT_I_WANT_THAT_IN_MY_MIXIN_PACKAGE
+        get() = "big_shot:but_i_want_that_in_my_mixin_package"
 
     override fun transform(
         type: TransformType,

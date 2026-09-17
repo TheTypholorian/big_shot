@@ -7,7 +7,6 @@ import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.loader.BigShotLoader
-import net.typho.big_shot.loader.constant.TransformEventNames
 import net.typho.big_shot.loader.transform.TransformEvent
 import net.typho.big_shot.loader.transform.TransformType
 import net.typho.big_shot.loader.util.EventGraph
@@ -22,7 +21,7 @@ import kotlin.metadata.kind
 
 object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
     override val id: String
-        get() = TransformEventNames.KOTLIN_MIXIN_FIXER
+        get() = "big_shot:kotlin_mixin_fixer"
 
     override fun transform(
         type: TransformType,

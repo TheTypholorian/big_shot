@@ -3,7 +3,6 @@ package net.typho.big_shot.loader.transform.impl
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
-import net.typho.big_shot.loader.constant.TransformEventNames
 import net.typho.big_shot.loader.transform.TransformEvent
 import net.typho.big_shot.loader.transform.TransformType
 import net.typho.big_shot.loader.util.EventGraph
@@ -12,7 +11,7 @@ import org.objectweb.asm.tree.MethodInsnNode
 
 object InjectMixinUtilsTransform : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
     override val id: String
-        get() = TransformEventNames.INJECT_MIXIN_UTILS
+        get() = "big_shot:inject_mixin_utils"
 
     override fun transform(
         type: TransformType,
