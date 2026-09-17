@@ -50,7 +50,7 @@ object BigShotAgent {
 
         inst.addTransformer({ loader, className, classBeingRedefined, domain, bytes ->
             try {
-                val info = ClassTransformInfo.AgentTransform(bytes)
+                val info = ClassTransformInfo.ByteTransform(bytes)
 
                 when (className) {
                     "net/fabricmc/loader/impl/launch/knot/Knot" -> {

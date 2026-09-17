@@ -35,7 +35,7 @@ interface JarTransformAction<P : TransformParameters> : TransformAction<P> {
                 inJar.entries().asIterator().forEach { entry ->
                     if (entry.name.endsWith(".class")) {
                         val bytes = inJar.getInputStream(entry).readAllBytes()
-                        val info = ClassTransformInfo.AgentTransform(bytes)
+                        val info = ClassTransformInfo.ByteTransform(bytes)
                         transformClass(info)
                         outJar.putNextEntry(entry)
                         outJar.write(info.compile() ?: bytes)

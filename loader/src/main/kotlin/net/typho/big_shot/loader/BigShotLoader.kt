@@ -135,7 +135,7 @@ object BigShotLoader {
                 bytes: ByteArray
             ): ByteArray? {
                 try {
-                    val info = ClassTransformInfo.AgentTransform(bytes)
+                    val info = ClassTransformInfo.ByteTransform(bytes)
 
                     TRANSFORM_EVENTS.execute { id, event ->
                         info.fallbackErrorSource = id
