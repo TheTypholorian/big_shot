@@ -38,12 +38,24 @@ open class EventGraph<K : Any, T : Any> {
             resolved = false
             return this
         }
+
+        fun after(event: SelfAware<K, out T>) = after(event.id)
     }
 
     @JvmField
     protected var events = mutableListOf<Event>()
     @JvmField
     protected var resolved = true
+
+    constructor()
+
+    constructor(vararg entries: SelfAware<K, T>) {
+        entries.forEach { register(it) }
+    }
+
+    constructor(vararg entries: Pair<K, T>) {
+        entries.forEach { (id, event) -> register(id, event) }
+    }
 
     @Synchronized
     fun register(
@@ -58,6 +70,12 @@ open class EventGraph<K : Any, T : Any> {
         events.add(event)
         resolved = false
         return event
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Synchronized
+    fun register(event: SelfAware<K, T>): Event {
+        return register(event.id, event as? T ?: throw IllegalArgumentException()).also { event.postRegister(it) }
     }
 
     fun execute(out: Consumer<T>) {
@@ -124,9 +142,16 @@ open class EventGraph<K : Any, T : Any> {
     @Synchronized
     override fun toString(): String {
         return if (events.isEmpty()) {
-            "No events"
+            "Empty event graph"
         } else {
-            events.joinToString(separator = "\n", prefix = if (resolved) "Resolved\n" else "Unresolved\n", transform = { "${it.id}[${it.event}]" })
+            events.joinToString(separator = "\n", prefix = if (resolved) "Resolved event graph:\n" else "Unresolved event graph:\n", transform = { "${it.id}[${it.event}]" })
+        }
+    }
+
+    interface SelfAware<K : Any, T : Any> {
+        val id: K
+
+        fun postRegister(event: EventGraph<K, T>.Event) {
         }
     }
 }

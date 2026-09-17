@@ -1,11 +1,16 @@
-package net.typho.big_shot.loader.util.mixin
+package net.typho.big_shot.loader.mixin.kotlin
 
 import net.typho.asm_util.ASMUtil.splice
+import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.KotlinUtil.kotlinMetadata
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.loader.BigShotLoader
+import net.typho.big_shot.loader.constant.TransformEventNames
+import net.typho.big_shot.loader.transform.TransformEvent
+import net.typho.big_shot.loader.transform.TransformType
+import net.typho.big_shot.loader.util.EventGraph
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.commons.Remapper
@@ -15,11 +20,25 @@ import kotlin.metadata.ClassKind
 import kotlin.metadata.jvm.KotlinClassMetadata
 import kotlin.metadata.kind
 
-object KotlinMixinFixer {
+object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
+    override val id: String
+        get() = TransformEventNames.KOTLIN_MIXIN_FIXER
+
+    override fun transform(
+        type: TransformType,
+        info: ClassTransformInfo
+    ) {
+        if (type == TransformType.MIXIN) {
+            if (fix(info.node)) {
+                info.markChanged()
+            }
+        }
+    }
+
     /**
-     * If the mixin is in kotlin, this method fixes it so it works fine (specifically, static methods).
+     * If the mixin is written in kotlin, this method fixes it so it works fine (specifically, static methods).
      *
-     * If the mixin isn't in kotlin, nothing happens.
+     * If the mixin isn't written in kotlin, nothing happens and the method returns false.
      *
      * @return If the class was changed
      */

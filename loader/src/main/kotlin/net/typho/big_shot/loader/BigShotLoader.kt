@@ -4,11 +4,6 @@ import com.llamalad7.mixinextras.lib.apache.commons.tuple.Pair
 import com.llamalad7.mixinextras.sugar.impl.SugarApplicator
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.error.ClassVisitException
-import net.typho.asm_util.insn.InsnPointer
-import net.typho.asm_util.method.MethodPointer
-import net.typho.asm_util.remap.CompatClassRemapper
-import net.typho.big_shot.data.ct.BuiltinClassTweaker
-import net.typho.big_shot.loader.constant.TransformEventNames
 import net.typho.big_shot.loader.mixin.jumps.BreakLoop
 import net.typho.big_shot.loader.mixin.jumps.BreakLoopSugarApplicator
 import net.typho.big_shot.loader.mixin.jumps.Jump
@@ -16,19 +11,16 @@ import net.typho.big_shot.loader.mixin.jumps.JumpSugarApplicator
 import net.typho.big_shot.loader.mixin.target.SwitchInjectionPoint
 import net.typho.big_shot.loader.mixin.target.TypeInjectionPoint
 import net.typho.big_shot.loader.util.EventGraph
-import net.typho.big_shot.loader.util.inst.RemapEvent
-import net.typho.big_shot.loader.util.inst.TransformEvent
-import net.typho.big_shot.loader.util.inst.TransformType
-import net.typho.big_shot.loader.util.mixin.KotlinMixinFixer
-import org.objectweb.asm.ClassVisitor
+import net.typho.big_shot.loader.transform.RemapEvent
+import net.typho.big_shot.loader.transform.TransformEvent
+import net.typho.big_shot.loader.transform.TransformType
+import net.typho.big_shot.loader.mixin.kotlin.KotlinMixinFixer
+import net.typho.big_shot.loader.transform.impl.BuiltinClassTweakerTransform
+import net.typho.big_shot.loader.transform.impl.ButIWantThatInMyMixinPackageTransform
+import net.typho.big_shot.loader.transform.impl.InjectMixinUtilsTransform
+import net.typho.big_shot.loader.transform.impl.RemapTransform
 import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
-import org.objectweb.asm.tree.InsnList
-import org.objectweb.asm.tree.JumpInsnNode
-import org.objectweb.asm.tree.LabelNode
-import org.objectweb.asm.tree.MethodInsnNode
-import org.objectweb.asm.tree.VarInsnNode
 import org.spongepowered.asm.mixin.injection.InjectionPoint
 import org.spongepowered.asm.mixin.transformer.ClassInfo
 import java.lang.instrument.ClassFileTransformer
@@ -44,7 +36,13 @@ object BigShotLoader {
     @get:JvmName("getInstrumentation")
     lateinit var INSTRUMENTATION: Instrumentation
     @JvmField
-    val TRANSFORM_EVENTS = EventGraph<String, TransformEvent>()
+    val TRANSFORM_EVENTS = EventGraph<String, TransformEvent>().apply {
+        register(BuiltinClassTweakerTransform)
+        register(ButIWantThatInMyMixinPackageTransform)
+        register(InjectMixinUtilsTransform)
+        register(KotlinMixinFixer)
+        register(RemapTransform)
+    }
     @JvmField
     val REMAP_EVENTS = EventGraph<String, RemapEvent>()
 
@@ -52,100 +50,6 @@ object BigShotLoader {
     lateinit var LOADER_PATH: Path
     @JvmField
     val DEBUG_PATH = Paths.get(".big_shot_debug")
-
-    init {
-        TRANSFORM_EVENTS.register(TransformEventNames.EARLY_ACCESS_WIDENER) { type, info ->
-            BuiltinClassTweaker.apply(info)
-        }
-        TRANSFORM_EVENTS.register(TransformEventNames.BUT_I_WANT_THAT_IN_MY_MIXIN_PACKAGE) { type, info ->
-            when (info.className) {
-                "org/spongepowered/asm/mixin/transformer/MixinProcessor" -> {
-                    MethodPointer.method().name("applyMixins").findOrThrow(info.node) { method ->
-                        val hasSuperClass = InsnPointer.methodCall()
-                            .owner("org/spongepowered/asm/mixin/transformer/ClassInfo")
-                            .name("hasSuperClass")
-                            .desc("(Ljava/lang/Class;)Z")
-                            .ordinal(0)
-                            .findOrThrow(method.instructions)
-                        val insn = InsnPointer.localOperation()
-                            .lastOrdinal()
-                            .before(hasSuperClass)
-                            .findOrThrow(method.instructions)
-
-                        method.instructions.insertBefore(insn, InsnList().apply {
-                            val label = InsnPointer.jump()
-                                .opcode(Opcodes.IFNE)
-                                .ordinal(0)
-                                .after(hasSuperClass)
-                                .findOrThrow(method.instructions)
-                                .label
-
-                            add(VarInsnNode(Opcodes.ALOAD, 9))
-                            add(MethodInsnNode(
-                                Opcodes.INVOKESTATIC,
-                                "net/typho/big_shot/loader/BigShotLoader",
-                                "bypassMixinPackageRestriction",
-                                "(Lorg/spongepowered/asm/mixin/transformer/ClassInfo;)Z"
-                            ))
-                            add(JumpInsnNode(Opcodes.IFNE, label))
-                        })
-                    }
-                    info.markChanged()
-                    info.computeFrames()
-                }
-            }
-        }
-        TRANSFORM_EVENTS.register(TransformEventNames.INJECT_MIXIN_UTILS) { type, info ->
-            when (info.className) {
-                "com/llamalad7/mixinextras/sugar/impl/SugarApplicator" -> {
-                    MethodPointer.method().name("<clinit>").findOrThrow(info.node) { method ->
-                        InsnPointer.methodCallStatic().owner("java/util/Arrays").name("asList").ordinal(0).findOrThrow(method.instructions) { insn ->
-                            method.instructions.insert(insn, MethodInsnNode(
-                                Opcodes.INVOKESTATIC,
-                                "net/typho/big_shot/loader/BigShotLoader",
-                                "registerExtraMixinSugars",
-                                "(Ljava/util/List;)Ljava/util/List;"
-                            ))
-                        }
-                    }
-                    info.markChanged()
-                }
-                "org/spongepowered/asm/mixin/injection/InjectionPoint" -> {
-                    MethodPointer.method().name("<clinit>").findOrThrow(info.node) { method ->
-                        InsnPointer.simple().opcode(Opcodes.RETURN).findOrThrow(method.instructions) { insn ->
-                            method.instructions.insertBefore(insn, MethodInsnNode(
-                                Opcodes.INVOKESTATIC,
-                                "net/typho/big_shot/loader/BigShotLoader",
-                                "registerInjectionPoints",
-                                "()V"
-                            ))
-                        }
-                    }
-                    info.markChanged()
-                    info.computeFrames()
-                }
-            }
-        }
-        TRANSFORM_EVENTS.register(TransformEventNames.KOTLIN_MIXIN_FIXER) { type, info ->
-            if (type == TransformType.MIXIN) {
-                if (KotlinMixinFixer.fix(info.node)) {
-                    info.markChanged()
-                }
-            }
-        }
-        TRANSFORM_EVENTS.register(TransformEventNames.REMAP) { type, info ->
-            val newNode = ClassNode()
-            val visitor = REMAP_EVENTS.resolve().foldRight(newNode as ClassVisitor) { event, visitor ->
-                val remapper = event.event.createRemapper(info)
-                if (remapper == null) visitor else CompatClassRemapper(visitor, remapper)
-            }
-
-            if (visitor !== newNode) {
-                info.node.accept(visitor)
-                info.node = newNode
-            }
-        }.after(TransformEventNames.KOTLIN_MIXIN_FIXER) // we want to remap after kotlin mixins are fixed, since companion objects
-    }
 
     @JvmStatic
     fun debugSaveClass(

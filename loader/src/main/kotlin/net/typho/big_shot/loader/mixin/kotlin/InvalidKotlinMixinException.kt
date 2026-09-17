@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.util.mixin
+package net.typho.big_shot.loader.mixin.kotlin
 
 class InvalidKotlinMixinException : RuntimeException {
     constructor() : super()
