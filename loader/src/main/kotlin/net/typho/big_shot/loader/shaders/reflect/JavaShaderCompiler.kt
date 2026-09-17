@@ -1,6 +1,6 @@
 package net.typho.big_shot.loader.shaders.reflect
 
-import net.typho.asm_util.ASMUtil.forEach
+import net.typho.asm_util.ASMUtil.mapIterator
 import net.typho.asm_util.method.MethodPointer
 import net.typho.big_shot.loader.shaders.bytecode.*
 import org.objectweb.asm.Type
@@ -41,20 +41,20 @@ class JavaShaderCompiler(
                 $$"Lnet/typho/big_shot/loader/shaders/reflect/JavaShader$Input;" -> {
                     storageClass = STORAGE_CLASS_INPUT
                     type = Type.getType(node.desc)
-                    anno.forEach { key, value -> if (key == "name" && (value as String).isNotEmpty()) name = value }
+                    anno.mapIterator().forEach { (key, value) -> if (key == "name" && (value as String).isNotEmpty()) name = value }
                 }
                 $$"Lnet/typho/big_shot/loader/shaders/reflect/JavaShader$Output;" -> {
                     storageClass = STORAGE_CLASS_OUTPUT
                     type = Type.getType(node.desc)
-                    anno.forEach { key, value -> if (key == "name" && (value as String).isNotEmpty()) name = value }
+                    anno.mapIterator().forEach { (key, value) -> if (key == "name" && (value as String).isNotEmpty()) name = value }
                 }
                 $$"Lnet/typho/big_shot/loader/shaders/reflect/JavaShader$Uniform;" -> {
                     storageClass = STORAGE_CLASS_UNIFORM
                     type = Type.getType(node.desc)
-                    anno.forEach { key, value -> if (key == "name" && (value as String).isNotEmpty()) name = value }
+                    anno.mapIterator().forEach { (key, value) -> if (key == "name" && (value as String).isNotEmpty()) name = value }
                 }
                 $$"Lnet/typho/big_shot/loader/shaders/reflect/JavaShader$Location;" -> {
-                    anno.forEach { key, value -> if (key == "value") location = value as Int }
+                    anno.mapIterator().forEach { (key, value) -> if (key == "value") location = value as Int }
                 }
             }
         }
