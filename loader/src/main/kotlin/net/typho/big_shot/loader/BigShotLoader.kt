@@ -13,7 +13,7 @@ import net.typho.big_shot.loader.mixin.target.TypeInjectionPoint
 import net.typho.big_shot.loader.util.EventGraph
 import net.typho.big_shot.loader.transform.RemapEvent
 import net.typho.big_shot.loader.transform.TransformEvent
-import net.typho.big_shot.loader.transform.TransformType
+import net.typho.big_shot.loader.transform.TransformSource
 import net.typho.big_shot.loader.mixin.kotlin.KotlinMixinFixer
 import net.typho.big_shot.loader.transform.impl.BuiltinClassTweakerTransform
 import net.typho.big_shot.loader.transform.impl.ButIWantThatInMyMixinPackageTransform
@@ -36,13 +36,13 @@ object BigShotLoader {
     @get:JvmName("getInstrumentation")
     lateinit var INSTRUMENTATION: Instrumentation
     @JvmField
-    val TRANSFORM_EVENTS = EventGraph<String, TransformEvent>().apply {
-        register(BuiltinClassTweakerTransform)
-        register(ButIWantThatInMyMixinPackageTransform)
-        register(InjectMixinUtilsTransform)
-        register(KotlinMixinFixer)
-        register(RemapTransform)
-    }
+    val TRANSFORM_EVENTS = EventGraph<String, TransformEvent>(
+        BuiltinClassTweakerTransform,
+        ButIWantThatInMyMixinPackageTransform,
+        InjectMixinUtilsTransform,
+        KotlinMixinFixer,
+        RemapTransform
+    )
     @JvmField
     val REMAP_EVENTS = EventGraph<String, RemapEvent>()
 
@@ -86,7 +86,7 @@ object BigShotLoader {
 
                     TRANSFORM_EVENTS.execute { id, event ->
                         info.fallbackErrorSource = id
-                        event.transform(TransformType.CLASS, info)
+                        event.transform(TransformSource.CLASS, info)
                     }
 
                     return info.compile(::debugSaveClass)
@@ -121,13 +121,34 @@ object BigShotLoader {
 
     @Suppress("unused")
     @JvmStatic
-    fun transformMixinClass(node: ClassNode) {
+    fun transformMixinInfo(node: ClassNode) {
         try {
             val info = ClassTransformInfo.Wrapper(node)
 
             TRANSFORM_EVENTS.execute { id, event ->
                 info.fallbackErrorSource = id
-                event.transform(TransformType.MIXIN, info)
+                event.transform(TransformSource.MIXIN, info)
+            }
+
+            info.checkErrors()
+
+            if (info.changed) {
+                debugSaveClass(node)
+            }
+        } catch (t: Throwable) {
+            throw ClassVisitException("Error transforming mixin class ${node.name}\nTransform event graph:\n$TRANSFORM_EVENTS", t)
+        }
+    }
+
+    @Suppress("unused")
+    @JvmStatic
+    fun transformClassInfo(node: ClassNode) {
+        try {
+            val info = ClassTransformInfo.Wrapper(node)
+
+            TRANSFORM_EVENTS.execute { id, event ->
+                info.fallbackErrorSource = id
+                event.transform(TransformSource.CLASS_INFO, info)
             }
 
             info.checkErrors()

@@ -42,10 +42,10 @@ open class EventGraph<K : Any, T : Any> {
         fun after(event: SelfAware<K, out T>) = after(event.id)
     }
 
-    @JvmField
-    protected var events = mutableListOf<Event>()
-    @JvmField
-    protected var resolved = true
+    var events = listOf<Event>()
+        protected set
+    var resolved = true
+        protected set
 
     constructor()
 
@@ -67,7 +67,7 @@ open class EventGraph<K : Any, T : Any> {
         }
 
         val event = Event(id, event)
-        events.add(event)
+        events += event
         resolved = false
         return event
     }

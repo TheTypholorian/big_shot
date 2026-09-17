@@ -3,7 +3,7 @@ package net.typho.big_shot.loader.transform.impl
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.big_shot.data.ct.BuiltinClassTweaker
 import net.typho.big_shot.loader.transform.TransformEvent
-import net.typho.big_shot.loader.transform.TransformType
+import net.typho.big_shot.loader.transform.TransformSource
 import net.typho.big_shot.loader.util.EventGraph
 
 object BuiltinClassTweakerTransform : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
@@ -15,7 +15,7 @@ object BuiltinClassTweakerTransform : EventGraph.SelfAware<String, TransformEven
     }
 
     override fun transform(
-        type: TransformType,
+        type: TransformSource,
         info: ClassTransformInfo
     ) {
         BuiltinClassTweaker.apply(info)

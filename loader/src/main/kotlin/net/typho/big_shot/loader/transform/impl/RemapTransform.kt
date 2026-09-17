@@ -5,7 +5,7 @@ import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.loader.BigShotLoader.REMAP_EVENTS
 import net.typho.big_shot.loader.mixin.kotlin.KotlinMixinFixer
 import net.typho.big_shot.loader.transform.TransformEvent
-import net.typho.big_shot.loader.transform.TransformType
+import net.typho.big_shot.loader.transform.TransformSource
 import net.typho.big_shot.loader.util.EventGraph
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.tree.ClassNode
@@ -19,7 +19,7 @@ object RemapTransform : EventGraph.SelfAware<String, TransformEvent>, TransformE
     }
 
     override fun transform(
-        type: TransformType,
+        type: TransformSource,
         info: ClassTransformInfo
     ) {
         val newNode = ClassNode()

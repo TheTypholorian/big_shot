@@ -8,7 +8,7 @@ import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.loader.BigShotLoader
 import net.typho.big_shot.loader.transform.TransformEvent
-import net.typho.big_shot.loader.transform.TransformType
+import net.typho.big_shot.loader.transform.TransformSource
 import net.typho.big_shot.loader.util.EventGraph
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
@@ -24,10 +24,10 @@ object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, Transfor
         get() = "big_shot:kotlin_mixin_fixer"
 
     override fun transform(
-        type: TransformType,
+        type: TransformSource,
         info: ClassTransformInfo
     ) {
-        if (type == TransformType.MIXIN) {
+        if (type.isMixinClass) {
             if (fix(info.node)) {
                 info.markChanged()
             }

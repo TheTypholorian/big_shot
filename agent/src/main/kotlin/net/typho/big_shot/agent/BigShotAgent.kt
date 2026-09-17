@@ -155,7 +155,34 @@ object BigShotAgent {
                                         add(MethodInsnNode(
                                             Opcodes.INVOKESTATIC,
                                             "net/typho/big_shot/loader/BigShotLoader",
-                                            "transformMixinClass",
+                                            "transformMixinInfo",
+                                            "(Lorg/objectweb/asm/tree/ClassNode;)V"
+                                        ))
+                                    }
+                                )
+                            }
+                    }
+                    "org/spongepowered/asm/mixin/transformer/ClassInfo" -> {
+                        info.markChanged()
+                        info.computeMaxStacks()
+
+                        MethodPointer.method()
+                            .name("<init>")
+                            .desc("(Lorg/objectweb/asm/tree/ClassNode;)V")
+                            .findOrThrow(info.node) { method ->
+                                method.instructions.insert(
+                                    InsnPointer.methodCall()
+                                        .owner("java/lang/Object")
+                                        .name("<init>")
+                                        .desc("()V")
+                                        .ordinal(0)
+                                        .findOrThrow(method.instructions),
+                                    InsnList().apply {
+                                        add(VarInsnNode(Opcodes.ALOAD, 1))
+                                        add(MethodInsnNode(
+                                            Opcodes.INVOKESTATIC,
+                                            "net/typho/big_shot/loader/BigShotLoader",
+                                            "transformClassInfo",
                                             "(Lorg/objectweb/asm/tree/ClassNode;)V"
                                         ))
                                     }
