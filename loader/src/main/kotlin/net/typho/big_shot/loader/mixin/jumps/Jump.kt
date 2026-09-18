@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.injection.At
 /**
  * A mixin sugar annotation that allows for an arbitrary jump to any place in the target method.
  *
- * Arguments must be of type [JumpHandle] or [JumpHandle.Complex] when locals/stack values need extra handling (see [localsToModify] and [shiftBeforeStack] for more info).
+ * Arguments must be of type [JumpInfo] or [JumpInfo.Complex] when locals/stack values need extra handling (see [localsToModify] and [shiftBeforeStack] for more info).
  *
  * Example for usage:
  * ```java
@@ -32,7 +32,7 @@ import org.spongepowered.asm.mixin.injection.At
  *             value = "INVOKE",
  *             target = "methodA"
  *         )
- *     ) JumpHandle jump
+ *     ) JumpInfo jump
  * ) {
  *     if (shouldJump) {
  *         jump.jump();
@@ -45,7 +45,7 @@ import org.spongepowered.asm.mixin.injection.At
  *     if (...) {
  *         methodA();
  *     } else {
- *         JumpHandle.Impl jumpHandle0 = new JumpHandle.Impl(0, 0);
+ *         JumpInfo.Impl jumpHandle0 = new JumpInfo.Impl(0, 0);
  *         mixinMethod(null, jumpHandle0);
  *
  *         if (jumpHandle0) {
@@ -83,7 +83,7 @@ annotation class Jump(
      * Option 1 is to instead jump before the locals are initialized, and they will be set to their normal value (or whatever value is mixin'd in).
      *
      * However, if you want a local to be a different value, then use `localsToModify`.
-     * Specify each local you want to modify, then use `JumpHandle$Complex.setLocal` to modify them (`setLocal` calls will be ignored unless the jump is invoked).
+     * Specify each local you want to modify, then use `JumpInfo$Complex.setLocal` to modify them (`setLocal` calls will be ignored unless the jump is invoked).
      * Note that the indices for `setLocal` are indices into the `localsToModify` array.
      *
      * Going back to the original example, your mixin would look like this for option 2:
@@ -107,7 +107,7 @@ annotation class Jump(
      *             @Local(type = int.class),
      *             @Local(type = float.class)
      *         }
-     *     ) JumpHandle.Complex jump // Note that this is a JumpHandle.Complex type, as it has the setLocal and setStack methods.
+     *     ) JumpInfo.Complex jump // Note that this is a JumpInfo.Complex type, as it has the setLocal and setStack methods.
      * ) {
      *     if (shouldJump) {
      *         jump.jump();
@@ -139,7 +139,7 @@ annotation class Jump(
      * // injection here
      * System.out.println("abc");
      * ```
-     * If you had `shiftBeforeStack` set to false, then you would need to use a [JumpHandle.Complex] and restate the stack values for `System.out` and `"abc"` in your mixin, like this:
+     * If you had `shiftBeforeStack` set to false, then you would need to use a [JumpInfo.Complex] and restate the stack values for `System.out` and `"abc"` in your mixin, like this:
      * ```java
      * complexHandle.jump();
      * complexHandle.setStack(0, System.out);

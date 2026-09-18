@@ -24,14 +24,14 @@ abstract class AbstractJumpSugarApplicator(
 ) : SugarApplicator(info, parameter) {
     companion object {
         @JvmField
-        val JUMP_HANDLE_TYPE = Type.getType(JumpHandle::class.java)
+        val JUMP_HANDLE_TYPE = Type.getType(JumpInfo::class.java)
         @JvmField
-        val JUMP_HANDLE_IMPL_TYPE = Type.getType(JumpHandle.Impl::class.java)
+        val JUMP_HANDLE_IMPL_TYPE = Type.getType(JumpInfo.Impl::class.java)
 
         @JvmField
-        val JUMP_HANDLE_COMPLEX_TYPE = Type.getType(JumpHandle.Complex::class.java)
+        val JUMP_HANDLE_COMPLEX_TYPE = Type.getType(JumpInfo.Complex::class.java)
         @JvmField
-        val JUMP_HANDLE_COMPLEX_IMPL_TYPE = Type.getType(JumpHandle.ComplexImpl::class.java)
+        val JUMP_HANDLE_COMPLEX_IMPL_TYPE = Type.getType(JumpInfo.ComplexImpl::class.java)
     }
 
     protected lateinit var jumpTarget: AbstractInsnNode

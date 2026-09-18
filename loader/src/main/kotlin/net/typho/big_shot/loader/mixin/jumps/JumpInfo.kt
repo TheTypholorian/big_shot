@@ -2,12 +2,12 @@ package net.typho.big_shot.loader.mixin.jumps
 
 import org.jetbrains.annotations.ApiStatus
 
-sealed interface JumpHandle {
+sealed interface JumpInfo {
     fun jump()
 
     fun hasJumped(): Boolean
 
-    interface Complex : JumpHandle {
+    interface Complex : JumpInfo {
         val numLocals: Int
         val numStack: Int
 
@@ -23,7 +23,7 @@ sealed interface JumpHandle {
     }
 
     @ApiStatus.Internal
-    class Impl : JumpHandle {
+    class Impl : JumpInfo {
         private var jumped = false
 
         override fun jump() {

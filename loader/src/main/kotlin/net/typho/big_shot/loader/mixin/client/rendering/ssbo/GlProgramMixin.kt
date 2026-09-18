@@ -9,7 +9,7 @@ import com.mojang.blaze3d.pipeline.BindGroupLayout
 import com.mojang.blaze3d.shaders.UniformType
 import net.typho.big_shot.loader.client.rendering.ssbo.SsboUniform
 import net.typho.big_shot.loader.mixin.jumps.Jump
-import net.typho.big_shot.loader.mixin.jumps.JumpHandle
+import net.typho.big_shot.loader.mixin.jumps.JumpInfo
 import net.typho.big_shot.loader.mixin.kotlin.KtShadow
 import org.lwjgl.opengl.GL43.GL_SHADER_STORAGE_BLOCK
 import org.lwjgl.opengl.GL43.glGetProgramResourceIndex
@@ -57,7 +57,7 @@ abstract class GlProgramMixin {
                 Local(type = Uniform::class)
             ],
             shiftBeforeStack = true
-        ) jump: JumpHandle.Complex,
+        ) jump: JumpInfo.Complex,
         @Local uniform: BindGroupLayout.UniformDescription,
         @Share("nextSsboBinding") nextSsboBinding: LocalIntRef
     ) {

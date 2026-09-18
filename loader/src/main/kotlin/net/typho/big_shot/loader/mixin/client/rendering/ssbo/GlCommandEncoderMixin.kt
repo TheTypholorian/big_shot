@@ -10,7 +10,7 @@ import com.mojang.blaze3d.shaders.UniformType
 import net.typho.big_shot.loader.client.rendering.buffer.GpuBufferUsage
 import net.typho.big_shot.loader.client.rendering.ssbo.SsboUniform
 import net.typho.big_shot.loader.mixin.jumps.Jump
-import net.typho.big_shot.loader.mixin.jumps.JumpHandle
+import net.typho.big_shot.loader.mixin.jumps.JumpInfo
 import org.lwjgl.opengl.GL30.glBindBufferRange
 import org.lwjgl.opengl.GL43.GL_SHADER_STORAGE_BUFFER
 import org.objectweb.asm.Opcodes
@@ -63,7 +63,7 @@ class GlCommandEncoderMixin {
             value = "INVOKE",
             target = "Ljava/util/Iterator;hasNext()Z",
             ordinal = 2
-        ), shiftBeforeStack = true) jump: JumpHandle
+        ), shiftBeforeStack = true) jump: JumpInfo
     ) {
         if (entry.value is SsboUniform && renderPass.dirtyUniforms.contains(entry.key)) {
             val buffer = renderPass.uniforms[entry.key]!!
