@@ -9,7 +9,7 @@ import net.typho.big_shot.loader.util.EventGraph
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.MethodInsnNode
 
-object InjectMixinUtilsTransform : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
+object InjectMixinUtilsTransform : EventGraph.SelfAware<String>, TransformEvent {
     override val id: String
         get() = "big_shot:inject_mixin_utils"
 

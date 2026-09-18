@@ -16,6 +16,7 @@ import org.lwjgl.opengl.GL43.GL_SHADER_STORAGE_BUFFER
 import org.objectweb.asm.Opcodes
 import org.spongepowered.asm.mixin.Debug
 import org.spongepowered.asm.mixin.Mixin
+import org.spongepowered.asm.mixin.Unique
 import org.spongepowered.asm.mixin.injection.At
 import org.spongepowered.asm.mixin.injection.Inject
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo
@@ -89,11 +90,18 @@ class GlCommandEncoderMixin {
             ci: CallbackInfo,
             @Local uniform: Uniform
         ) {
+            test()
             if (uniform is SsboUniform) {
                 glBindBufferRange(GL_SHADER_STORAGE_BUFFER, uniform.binding, (buffer.buffer() as GlBuffer).handle(), buffer.offset(), buffer.length())
 
                 ci.cancel()
             }
+        }
+
+        @JvmStatic
+        @Unique
+        private fun test() {
+            println("yay")
         }
     }
 }

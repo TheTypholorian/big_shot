@@ -12,7 +12,7 @@ import org.objectweb.asm.tree.JumpInsnNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
 
-object ButIWantThatInMyMixinPackageTransform : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
+object ButIWantThatInMyMixinPackageTransform : EventGraph.SelfAware<String>, TransformEvent {
     override val id: String
         get() = "big_shot:but_i_want_that_in_my_mixin_package"
 

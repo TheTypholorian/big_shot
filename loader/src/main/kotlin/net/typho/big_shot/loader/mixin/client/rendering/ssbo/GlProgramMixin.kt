@@ -10,7 +10,6 @@ import com.mojang.blaze3d.shaders.UniformType
 import net.typho.big_shot.loader.client.rendering.ssbo.SsboUniform
 import net.typho.big_shot.loader.mixin.jumps.Jump
 import net.typho.big_shot.loader.mixin.jumps.JumpInfo
-import net.typho.big_shot.loader.mixin.kotlin.KtShadow
 import org.lwjgl.opengl.GL43.GL_SHADER_STORAGE_BLOCK
 import org.lwjgl.opengl.GL43.glGetProgramResourceIndex
 import org.lwjgl.opengl.GL43.glShaderStorageBlockBinding
@@ -33,12 +32,12 @@ abstract class GlProgramMixin {
         private lateinit var LOGGER: Logger
     }
 
-    @KtShadow
-    protected abstract val programId: Int
-    @KtShadow
-    protected abstract val debugLabel: String
-    @KtShadow
-    protected abstract val uniformsByName: MutableMap<String, Uniform>
+    @Shadow
+    @Final
+    private var programId: Int = 0
+    @Shadow
+    @Final
+    private lateinit var debugLabel: String
 
     @Inject(
         method = ["setupBindGroupLayouts"],

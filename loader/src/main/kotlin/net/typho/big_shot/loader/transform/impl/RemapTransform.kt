@@ -10,11 +10,11 @@ import net.typho.big_shot.loader.util.EventGraph
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.tree.ClassNode
 
-object RemapTransform : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
+object RemapTransform : EventGraph.SelfAware<String>, TransformEvent {
     override val id: String
         get() = "big_shot:remap"
 
-    override fun postRegister(event: EventGraph<String, TransformEvent>.Event) {
+    override fun postRegister(event: EventGraph<String, *>.Event) {
         event.after(KotlinMixinFixer) // we want to remap after kotlin mixins are fixed, since companion objects
     }
 
@@ -24,8 +24,7 @@ object RemapTransform : EventGraph.SelfAware<String, TransformEvent>, TransformE
     ) {
         val newNode = ClassNode()
         val visitor = REMAP_EVENTS.resolve().foldRight(newNode as ClassVisitor) { event, visitor ->
-            val remapper = event.event.createRemapper(info)
-            if (remapper == null) visitor else CompatClassRemapper(visitor, remapper)
+            event.event.createVisitor(info, visitor) ?: visitor
         }
 
         if (visitor !== newNode) {

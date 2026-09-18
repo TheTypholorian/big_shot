@@ -6,11 +6,11 @@ import net.typho.big_shot.loader.transform.TransformEvent
 import net.typho.big_shot.loader.transform.TransformSource
 import net.typho.big_shot.loader.util.EventGraph
 
-object BuiltinClassTweakerTransform : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
+object BuiltinClassTweakerTransform : EventGraph.SelfAware<String>, TransformEvent {
     override val id: String
         get() = "big_shot:early_access_widener"
 
-    override fun postRegister(event: EventGraph<String, TransformEvent>.Event) {
+    override fun postRegister(event: EventGraph<String, *>.Event) {
         event.after(RemapTransform)
     }
 

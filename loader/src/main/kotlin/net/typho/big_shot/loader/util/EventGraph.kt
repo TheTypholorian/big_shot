@@ -4,15 +4,27 @@ import java.util.function.BiConsumer
 import java.util.function.Consumer
 
 open class EventGraph<K : Any, T : Any> {
+    enum class MissingDependencyBehavior {
+        SKIP,
+        THROW
+    }
+
+    class EventDependency<K : Any>(
+        @JvmField
+        val id: K,
+        @JvmField
+        val behavior: MissingDependencyBehavior
+    )
+
     inner class Event(
         @JvmField
         val id: K,
         @JvmField
         val event: T,
         @JvmField
-        val runThisBefore: MutableList<K> = mutableListOf(),
+        val runThisBefore: MutableList<EventDependency<K>> = mutableListOf(),
         @JvmField
-        val runThisAfter: MutableList<K> = mutableListOf()
+        val runThisAfter: MutableList<EventDependency<K>> = mutableListOf()
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -27,19 +39,25 @@ open class EventGraph<K : Any, T : Any> {
             return id.hashCode()
         }
 
-        fun before(id: K): EventGraph<K, T>.Event {
-            runThisBefore.add(id)
+        @JvmOverloads
+        fun before(id: K, behavior: MissingDependencyBehavior = MissingDependencyBehavior.THROW): EventGraph<K, T>.Event {
+            runThisBefore.add(EventDependency(id, behavior))
             resolved = false
             return this
         }
 
-        fun after(id: K): EventGraph<K, T>.Event {
-            runThisAfter.add(id)
+        @JvmOverloads
+        fun before(event: SelfAware<K>, behavior: MissingDependencyBehavior = MissingDependencyBehavior.THROW) = before(event.id, behavior)
+
+        @JvmOverloads
+        fun after(id: K, behavior: MissingDependencyBehavior = MissingDependencyBehavior.THROW): EventGraph<K, T>.Event {
+            runThisAfter.add(EventDependency(id, behavior))
             resolved = false
             return this
         }
 
-        fun after(event: SelfAware<K, out T>) = after(event.id)
+        @JvmOverloads
+        fun after(event: SelfAware<K>, behavior: MissingDependencyBehavior = MissingDependencyBehavior.THROW) = after(event.id, behavior)
     }
 
     var events = listOf<Event>()
@@ -49,7 +67,7 @@ open class EventGraph<K : Any, T : Any> {
 
     constructor()
 
-    constructor(vararg entries: SelfAware<K, T>) {
+    constructor(vararg entries: SelfAware<K>) {
         entries.forEach { register(it) }
     }
 
@@ -74,7 +92,7 @@ open class EventGraph<K : Any, T : Any> {
 
     @Suppress("UNCHECKED_CAST")
     @Synchronized
-    fun register(event: SelfAware<K, T>): Event {
+    fun register(event: SelfAware<K>): Event {
         return register(event.id, event as? T ?: throw IllegalArgumentException()).also { event.postRegister(it) }
     }
 
@@ -94,16 +112,22 @@ open class EventGraph<K : Any, T : Any> {
             val incoming = events.associateWith { 0 }.toMutableMap()
 
             for (event in events) {
-                for (before in event.runThisBefore) {
-                    val target = lookup[before] ?: continue
+                for (dependency in event.runThisBefore) {
+                    val target = lookup[dependency.id] ?: when (dependency.behavior) {
+                        MissingDependencyBehavior.SKIP -> continue
+                        MissingDependencyBehavior.THROW -> throw NullPointerException("Event graph does not contain dependency ${dependency.id} requested by ${event.id}")
+                    }
 
                     if (edges[event]!!.add(target)) {
                         incoming[target] = incoming[target]!! + 1
                     }
                 }
 
-                for (after in event.runThisAfter) {
-                    val source = lookup[after] ?: continue
+                for (dependency in event.runThisAfter) {
+                    val source = lookup[dependency.id] ?: when (dependency.behavior) {
+                        MissingDependencyBehavior.SKIP -> continue
+                        MissingDependencyBehavior.THROW -> throw NullPointerException("Event graph does not contain dependency ${dependency.id} requested by ${event.id}")
+                    }
 
                     if (edges[source]!!.add(event)) {
                         incoming[event] = incoming[event]!! + 1
@@ -148,10 +172,10 @@ open class EventGraph<K : Any, T : Any> {
         }
     }
 
-    interface SelfAware<K : Any, T : Any> {
+    interface SelfAware<K : Any> {
         val id: K
 
-        fun postRegister(event: EventGraph<K, T>.Event) {
+        fun postRegister(event: EventGraph<K, *>.Event) {
         }
     }
 }

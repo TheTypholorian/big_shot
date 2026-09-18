@@ -12,15 +12,17 @@ fun interface TransformEvent {
 
     abstract class ForSingleClass(
         @JvmField
-        vararg val names: String
-    ) : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
+        val names: Set<String>
+    ) : EventGraph.SelfAware<String>, TransformEvent {
+        constructor(vararg names: String) : this(setOf(*names))
+
         init {
             if (names.isEmpty()) {
                 throw IllegalArgumentException()
             }
         }
 
-        override fun postRegister(event: EventGraph<String, TransformEvent>.Event) {
+        override fun postRegister(event: EventGraph<String, *>.Event) {
             names.forEach { name ->
                 if (BigShotLoader.INSTRUMENTATION.allLoadedClasses.any { it.name.replace('.', '/') == name }) {
                     throw AssertionError("Registered transform for $name but it has already been loaded")
@@ -30,7 +32,7 @@ fun interface TransformEvent {
             }
         }
 
-        override fun transform(type: TransformSource, info: ClassTransformInfo) {
+        final override fun transform(type: TransformSource, info: ClassTransformInfo) {
             if (names.contains(info.className)) {
                 transformImpl(type, info)
             }

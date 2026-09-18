@@ -1,5 +1,6 @@
 package net.typho.big_shot.loader.mixin.kotlin
 
+import net.typho.asm_util.ASMUtil.get
 import net.typho.asm_util.ASMUtil.splice
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.KotlinUtil.kotlinMetadata
@@ -14,14 +15,22 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
 import org.objectweb.asm.commons.Remapper
+import org.objectweb.asm.tree.AnnotationNode
 import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.FieldNode
 import org.spongepowered.asm.service.MixinService
 import kotlin.metadata.ClassKind
+import kotlin.metadata.isVar
 import kotlin.metadata.jvm.KotlinClassMetadata
+import kotlin.metadata.jvm.fieldSignature
+import kotlin.metadata.jvm.getterSignature
+import kotlin.metadata.jvm.setterSignature
+import kotlin.metadata.jvm.syntheticMethodForAnnotations
 import kotlin.metadata.kind
 
-object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, TransformEvent {
+object KotlinMixinFixer : EventGraph.SelfAware<String>, TransformEvent {
     override val id: String
         get() = "big_shot:kotlin_mixin_fixer"
 
@@ -60,7 +69,7 @@ object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, Transfor
                 node.fields.removeIf { it.name == "INSTANCE" }
                 MethodPointer.method()
                     .name("<clinit>")
-                    .findOrThrow(node) { method ->
+                    .find(node).forEach { method ->
                         method.instructions.splice(
                             InsnPointer.type(node.name),
                             InsnPointer.fieldSetStatic()
@@ -131,14 +140,21 @@ object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, Transfor
 
             for (field in companionNode.fields) {
                 if (field.desc != "L$fullCompanion;") {
+                    if ((field.access and Opcodes.ACC_SYNTHETIC) == 0 && field.visibleAnnotations.none { it.desc == "Lkotlin/jvm/JvmStatic;" }) {
+                        throw InvalidKotlinMixinException("All mixin companion object fields and methods must be compiled with @JvmStatic, field ${node.name} ${field.name} ${field.desc} was not")
+                    }
+
                     field.accept(companionVisitor)
                 }
             }
 
             for (method in companionNode.methods) {
                 if (method.name != "<init>" && method.name != "<clinit>" && !((method.access and Opcodes.ACC_SYNTHETIC) != 0 && method.name.startsWith("access$"))) {
+                    if ((method.access and Opcodes.ACC_SYNTHETIC) == 0 && method.visibleAnnotations.none { it.desc == "Lkotlin/jvm/JvmStatic;" }) {
+                        throw InvalidKotlinMixinException("All mixin companion object fields and methods must be compiled with @JvmStatic, method ${node.name} ${method.name} ${method.desc} was not")
+                    }
+
                     node.methods.removeIf { it.name == method.name && it.desc == method.desc }
-                    method.access = (method.access or Opcodes.ACC_STATIC) and Opcodes.ACC_FINAL.inv() and Opcodes.ACC_SYNTHETIC.inv()
                     method.accept(companionVisitor)
                 }
             }
@@ -178,9 +194,29 @@ object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, Transfor
             signature: String?,
             exceptions: Array<String>?
         ): MethodVisitor {
-            return object : MethodVisitor(api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+            return object : MethodVisitor(api, super.visitMethod(access or Opcodes.ACC_STATIC, name, descriptor, signature, exceptions)) {
                 override fun visitVarInsn(opcode: Int, varIndex: Int) {
-                    super.visitVarInsn(opcode, varIndex - 1) // remove 'this'
+                    if (varIndex != 0) {
+                        super.visitVarInsn(opcode, varIndex - 1) // remove 'this'
+                    }
+                }
+
+                override fun visitFieldInsn(opcode: Int, owner: String, name: String, descriptor: String) {
+                    super.visitFieldInsn(if (owner == fullCompanionName) when (opcode) {
+                        Opcodes.GETFIELD -> Opcodes.GETSTATIC
+                        Opcodes.PUTFIELD -> Opcodes.PUTSTATIC
+                        else -> opcode
+                    } else opcode, owner, name, descriptor)
+                }
+
+                override fun visitMethodInsn(
+                    opcode: Int,
+                    owner: String,
+                    name: String,
+                    descriptor: String,
+                    isInterface: Boolean
+                ) {
+                    super.visitMethodInsn(if (owner == fullCompanionName) Opcodes.INVOKESTATIC else opcode, owner, name, descriptor, isInterface)
                 }
             }
         }
