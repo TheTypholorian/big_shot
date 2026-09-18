@@ -10,7 +10,9 @@ import net.typho.big_shot.loader.BigShotLoader
 import net.typho.big_shot.loader.transform.TransformEvent
 import net.typho.big_shot.loader.transform.TransformSource
 import net.typho.big_shot.loader.util.EventGraph
+import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.commons.Remapper
 import org.objectweb.asm.tree.ClassNode
@@ -124,20 +126,12 @@ object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, Transfor
                 }
             }
 
-            val companionRemapper = CompatClassRemapper(Opcodes.ASM9, node, object : Remapper(Opcodes.ASM9) {
-                override fun map(internalName: String?): String? {
-                    if (internalName == fullCompanion) {
-                        return node.name
-                    }
-
-                    return super.map(internalName)
-                }
-            })
+            val companionVisitor = CompanionObjectVisitor(Opcodes.ASM9, node, node.name, fullCompanion)
             val companionNode = MixinService.getService().bytecodeProvider.getClassNode(fullCompanion)
 
             for (field in companionNode.fields) {
                 if (field.desc != "L$fullCompanion;") {
-                    field.accept(companionRemapper)
+                    field.accept(companionVisitor)
                 }
             }
 
@@ -145,7 +139,7 @@ object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, Transfor
                 if (method.name != "<init>" && method.name != "<clinit>" && !((method.access and Opcodes.ACC_SYNTHETIC) != 0 && method.name.startsWith("access$"))) {
                     node.methods.removeIf { it.name == method.name && it.desc == method.desc }
                     method.access = (method.access or Opcodes.ACC_STATIC) and Opcodes.ACC_FINAL.inv() and Opcodes.ACC_SYNTHETIC.inv()
-                    method.accept(companionRemapper)
+                    method.accept(companionVisitor)
                 }
             }
         }
@@ -159,5 +153,38 @@ object KotlinMixinFixer : EventGraph.SelfAware<String, TransformEvent>, Transfor
         }
 
         return changed
+    }
+
+    open class CompanionObjectVisitor(
+        api: Int,
+        classVisitor: ClassVisitor?,
+        @JvmField
+        val parentName: String,
+        @JvmField
+        val fullCompanionName: String
+    ) : CompatClassRemapper(api, classVisitor, object : Remapper(api) {
+        override fun map(internalName: String?): String? {
+            if (internalName == fullCompanionName) {
+                return parentName
+            }
+
+            return super.map(internalName)
+        }
+    }) {
+        override fun visitMethod(
+            access: Int,
+            name: String,
+            descriptor: String,
+            signature: String?,
+            exceptions: Array<String>?
+        ): MethodVisitor {
+            return object : MethodVisitor(api, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                override fun visitVarInsn(opcode: Int, varIndex: Int) {
+                    super.visitVarInsn(opcode, varIndex - 1) // remove 'this'
+                }
+            }
+        }
+
+        // TODO method calls on fellow companion objects (or self)
     }
 }

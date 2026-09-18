@@ -63,8 +63,6 @@ import org.spongepowered.asm.mixin.injection.At
 annotation class Jump(
     /**
      * The instruction to jump to.
-     *
-     * **WARNING**: The target gets shifted back until the stack is empty.
      */
     val value: At,
     /**

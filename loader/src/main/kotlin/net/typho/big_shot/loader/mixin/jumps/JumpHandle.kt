@@ -33,6 +33,7 @@ sealed interface JumpHandle {
         override fun hasJumped() = jumped
     }
 
+    @Suppress("unused")
     @ApiStatus.Internal
     class ComplexImpl(
         numLocals: Int,
