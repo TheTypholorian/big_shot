@@ -3,7 +3,6 @@ package net.typho.big_shot.loader
 import net.fabricmc.loader.impl.game.GameProvider
 import net.fabricmc.loader.impl.launch.FabricLauncherBase
 import org.spongepowered.asm.mixin.Mixins
-import java.nio.file.Path
 
 @Suppress("unused")
 object FabricHooks {

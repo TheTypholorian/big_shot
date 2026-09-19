@@ -17,16 +17,15 @@ repositories {
 val jij = configurations.create("jij")
 
 dependencies {
-    compileOnly("net.fabricmc:fabric-loader:0.19.3")
-    compileOnly("net.fabricmc:class-tweaker:0.3.0")
+    compileOnly("net.fabricmc:fabric-loader:0.19.3") // TODO
 
     jij(kotlin("stdlib"))
     jij(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")!!)
 
-    compileOnly("org.ow2.asm:asm:9.10.1")
-    compileOnly("org.ow2.asm:asm-tree:9.10.1")
-    compileOnly("org.ow2.asm:asm-util:9.10.1")
-    compileOnly("org.ow2.asm:asm-commons:9.10.1")
+    implementation("org.ow2.asm:asm:9.10.1")
+    implementation("org.ow2.asm:asm-tree:9.10.1")
+    implementation("org.ow2.asm:asm-util:9.10.1")
+    implementation("org.ow2.asm:asm-commons:9.10.1")
     compileOnly("org.jetbrains:annotations:26.0.2")
     compileOnly("org.spongepowered:mixin:0.8.5")
     compileOnly("org.apache.commons:commons-lang3:3.20.0")

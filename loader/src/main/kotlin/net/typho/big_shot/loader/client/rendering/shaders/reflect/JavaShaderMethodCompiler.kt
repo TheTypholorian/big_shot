@@ -15,11 +15,6 @@ import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.MethodNode
 import org.objectweb.asm.tree.TypeInsnNode
 import org.objectweb.asm.tree.VarInsnNode
-import org.objectweb.asm.tree.analysis.Analyzer
-import org.objectweb.asm.tree.analysis.BasicInterpreter
-import org.objectweb.asm.tree.analysis.BasicValue
-import org.objectweb.asm.tree.analysis.Frame
-import kotlin.collections.get
 
 class JavaShaderMethodCompiler(
     @JvmField
@@ -34,8 +29,9 @@ class JavaShaderMethodCompiler(
     @JvmField
     val locals = mutableMapOf<Int, Local>()
     private val jumpTargets = mutableMapOf<LabelNode, ShaderLabelNode>()
+    private var localNameCounter = 0
 
-    fun loadLocal(index: Int, type: ShaderBytecodeType, old: Local?): Local {
+    fun loadLocal(id: Int, insnIndex: Int, type: ShaderBytecodeType, old: Local?): Local {
         if (type is ShaderBytecodeType.Pointer) {
             throw IllegalArgumentException()
         }
@@ -44,23 +40,30 @@ class JavaShaderMethodCompiler(
             return old
         }
 
-        println("loading local $index $type $old")
+        println("loading local $id $insnIndex $type $old")
 
         return if (type is ShaderBytecodeType.Array) {
             Local.NewArray(type)
         } else {
-            val variable = ShaderVariable(ShaderBytecodeType.Pointer(STORAGE_CLASS_FUNCTION, type), ShaderLabelNode())
+            val name = node.localVariables
+                ?.filter { it.index == id }
+                ?.map { it to node.instructions.indexOf(it.end) }
+                ?.sortedBy { (local, index) -> index }
+                ?.firstOrNull { (local, index) -> index >= insnIndex }?.first?.name ?: "var${localNameCounter++}"
+
+            val variable = ShaderVariable(ShaderBytecodeType.Pointer(STORAGE_CLASS_FUNCTION, type), ShaderLabelNode(name))
             function.instructions.add(ShaderInsnNode(OP_VARIABLE, variable.type, variable.label, variable.type.storageClass, variable.initializer))
             Local.Variable(variable)
         }
     }
 
-    fun getOrLoadLocal(index: Int, type: ShaderBytecodeType) = locals.compute(index) { key, local -> loadLocal(index, type, local) }!!
+    fun getOrLoadLocal(id: Int, insnIndex: Int, type: ShaderBytecodeType) = locals.compute(id) { key, local -> loadLocal(id, insnIndex, type, local) }!!
 
     fun compile() {
         stack.clear()
         locals.clear()
         jumpTargets.clear()
+        localNameCounter = 0
 
         //frames = Analyzer(BasicInterpreter()).analyze(parent.node.name, node)
 
@@ -162,7 +165,7 @@ class JavaShaderMethodCompiler(
 
                         when (val value = stack.pop()) {
                             is StackValue.Array -> {
-                                val local = getOrLoadLocal(insn.`var`, value.type)
+                                val local = getOrLoadLocal(insn.`var`, insnIndex, value.type)
 
                                 if (local !is Local.NewArray) {
                                     TODO("reassigning arrays?")
@@ -176,7 +179,7 @@ class JavaShaderMethodCompiler(
                                 throw JavaShaderCompilationException("Cannot store a mutable ${value.variable.type.type} value from one variable in another, since joml vectors are mutable while glsl vectors are immutable.")
                             }
                              */
-                            else -> getOrLoadLocal(insn.`var`, value.type!!).store(this@JavaShaderMethodCompiler, value)!!
+                            else -> getOrLoadLocal(insn.`var`, insnIndex, value.type!!).store(this@JavaShaderMethodCompiler, value)!!
                         }
                     }
 
@@ -245,7 +248,7 @@ class JavaShaderMethodCompiler(
                     Opcodes.IINC -> {
                         insn as IincInsnNode
                         val value = parent.builder.getConstant(ShaderConstant(ShaderBytecodeType.INT, listOf(insn.incr)))
-                        val local = getOrLoadLocal(insn.`var`, ShaderBytecodeType.INT)
+                        val local = getOrLoadLocal(insn.`var`, insnIndex, ShaderBytecodeType.INT)
                         val temp = local.load(this@JavaShaderMethodCompiler)!!
                         val result = ShaderLabelNode()
 

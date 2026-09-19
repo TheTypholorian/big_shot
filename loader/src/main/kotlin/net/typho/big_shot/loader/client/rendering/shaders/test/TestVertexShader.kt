@@ -30,11 +30,11 @@ class TestVertexShader : JavaShader.Vertex() {
 
         if (vec.x > 10) {
             var f = 10f
+            vec.x = f
         } else {
             var i = 10
+            vec.x = i.toFloat()
         }
-
-        vec.x = 10f
     }
 }
 
