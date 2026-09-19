@@ -3,11 +3,14 @@ package net.typho.big_shot.loader.client.rendering.shaders.reflect
 import net.typho.asm_util.cfg.BasicBlock
 import net.typho.asm_util.method.MethodPointer
 import net.typho.big_shot.loader.client.rendering.shaders.bytecode.*
+import net.typho.big_shot.loader.util.ExpandingByteBuffer
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.IincInsnNode
 import org.objectweb.asm.tree.IntInsnNode
+import org.objectweb.asm.tree.JumpInsnNode
+import org.objectweb.asm.tree.LabelNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.TypeInsnNode
 
@@ -17,7 +20,7 @@ class ShaderMethodBranch(
     @JvmField
     val block: BasicBlock,
     parent: ShaderMethodBranch?
-) {
+) : IShaderInsn {
     @JvmField
     val iterator = method.node.instructions.iterator(block.start)
     @JvmField
@@ -28,15 +31,99 @@ class ShaderMethodBranch(
     val locals: ShaderLocals = ShaderLocals(this, parent?.locals)
     @JvmField
     val stack: ShaderStack = ShaderStack(this, parent?.stack)
+    private var ended = false
 
     fun hasNext() = iterator.hasNext() && iterator.nextIndex() < block.end
+
+    override fun write(
+        builder: ShaderBytecodeBuilder,
+        buffer: ExpandingByteBuffer
+    ) {
+        insns.forEach { it.write(builder, buffer) }
+    }
 
     fun compile() {
         insns.add(ShaderInsnNode(OP_LABEL, label))
 
-        while (hasNext()) {
+        while (hasNext() && !ended) {
             compileNext()
         }
+
+        if (!ended) {
+            val target = method.branches[block.index + 1]!!.label
+            insns.add(ShaderInsnNode(OP_BRANCH, target))
+        }
+    }
+
+    fun jump(comparisonOpcode: Int, floatComparisonOpcode: Int, target: LabelNode) {
+        val target = method.branches[method.cfg.blocksByInsn[target]!!]!!.label
+        val value = stack.pop()
+        val bool = ShaderLabelNode()
+
+        insns.add(
+            if (value is ShaderStackValue.Comparison) {
+                when (value.javaOpcode) {
+                    Opcodes.LCMP -> ShaderInsnNode(
+                        comparisonOpcode,
+                        ShaderBytecodeType.Bool,
+                        bool,
+                        value.left.label!!,
+                        value.right.label!!
+                    )
+                    // TODO proper handling for NaNs
+                    Opcodes.FCMPL, Opcodes.DCMPL -> ShaderInsnNode(
+                        floatComparisonOpcode,
+                        ShaderBytecodeType.Bool,
+                        bool,
+                        value.left.label!!,
+                        value.right.label!!
+                    )
+
+                    Opcodes.FCMPG, Opcodes.DCMPG -> ShaderInsnNode(
+                        floatComparisonOpcode,
+                        ShaderBytecodeType.Bool,
+                        bool,
+                        value.left.label!!,
+                        value.right.label!!
+                    )
+
+                    else -> throw AssertionError()
+                }
+            } else {
+                ShaderInsnNode(
+                    comparisonOpcode,
+                    ShaderBytecodeType.Bool,
+                    bool,
+                    value.label!!,
+                    method.cls.builder.getConstant(ShaderConstant(ShaderBytecodeType.INT, listOf(0)))
+                )
+            }
+        )
+
+        val body = method.branches[block.index + 1]!!.label//ShaderLabelNode()
+        insns.add(ShaderInsnNode(OP_SELECTION_MERGE, target, SELECTION_CONTROL_NONE))
+        insns.add(ShaderInsnNode(OP_BRANCH_CONDITIONAL, bool, body, target))
+
+        ended = true
+    }
+
+    fun jump(comparisonOpcode: Int, target: LabelNode, right: ShaderLabelNode) {
+        val target = method.branches[method.cfg.blocksByInsn[target]!!]!!.label
+        val left = stack.pop()
+        val bool = ShaderLabelNode()
+        insns.add(ShaderInsnNode(comparisonOpcode, ShaderBytecodeType.Bool, bool, left.label!!, right))
+        val body = method.branches[block.index + 1]!!.label//ShaderLabelNode()
+        insns.add(ShaderInsnNode(OP_SELECTION_MERGE, target, SELECTION_CONTROL_NONE))
+        insns.add(ShaderInsnNode(OP_BRANCH_CONDITIONAL, bool, body, target))
+
+        ended = true
+    }
+
+    fun jump(target: LabelNode) {
+        val target = method.branches[method.cfg.blocksByInsn[target]!!]!!.label
+        insns.add(ShaderInsnNode(OP_BRANCH, target))
+
+        ended = true
     }
 
     fun const(type: ShaderBytecodeType, value: Any) {
@@ -158,7 +245,7 @@ class ShaderMethodBranch(
                     }
                     // TODO
                     /*
-                    is StackValue.LoadVariable -> if (value.variable.type.type is ShaderBytecodeType.Vector) {
+                    is ShaderStackValue.LoadVariable -> if (value.variable.type.type is ShaderBytecodeType.Vector) {
                         throw JavaShaderCompilationException("Cannot store a mutable ${value.variable.type.type} value from one variable in another, since joml vectors are mutable while glsl vectors are immutable.")
                     }
                      */
@@ -256,7 +343,6 @@ class ShaderMethodBranch(
 
             Opcodes.LCMP, Opcodes.FCMPL, Opcodes.FCMPG, Opcodes.DCMPL, Opcodes.DCMPG -> stack.push(ShaderStackValue.Comparison(insn.opcode, stack.pop(), stack.pop()))
 
-            /*
             Opcodes.IFEQ -> jump(OP_I_NOT_EQUAL, OP_F_ORD_NOT_EQUAL, (insn as JumpInsnNode).label)
             Opcodes.IFNE -> jump(OP_I_EQUAL, OP_F_ORD_EQUAL, (insn as JumpInsnNode).label)
             Opcodes.IFLT -> jump(OP_S_GREATER_THAN_EQUAL, OP_F_ORD_GREATER_THAN_EQUAL, (insn as JumpInsnNode).label)
@@ -272,15 +358,20 @@ class ShaderMethodBranch(
             Opcodes.IF_ICMPLE -> jump(OP_S_GREATER_THAN, (insn as JumpInsnNode).label, stack.pop().label!!)
 
             Opcodes.GOTO -> jump((insn as JumpInsnNode).label)
-             */
 
             // TODO comparison ops
             // TODO jump ops
             // TODO RET
             // TODO switches
 
-            Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN -> insns.add(ShaderInsnNode(OP_RETURN_VALUE, stack.pop().label!!))
-            Opcodes.RETURN -> insns.add(ShaderInsnNode(OP_RETURN))
+            Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN -> {
+                insns.add(ShaderInsnNode(OP_RETURN_VALUE, stack.pop().label!!))
+                ended = true
+            }
+            Opcodes.RETURN -> {
+                insns.add(ShaderInsnNode(OP_RETURN))
+                ended = true
+            }
 
             Opcodes.GETFIELD -> {
                 insn as FieldInsnNode
