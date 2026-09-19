@@ -6,6 +6,7 @@ import net.typho.big_shot.loader.client.rendering.shaders.bytecode.*
 import net.typho.big_shot.loader.util.ExpandingByteBuffer
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
+import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.IincInsnNode
 import org.objectweb.asm.tree.IntInsnNode
@@ -21,44 +22,58 @@ class ShaderMethodBranch(
     val method: ShaderMethodCompiler,
     @JvmField
     val block: BasicBlock
-) : IShaderInsn {
+) : IShaderInsn, ShaderLocalDelegate {
     @JvmField
-    val iterator = method.node.instructions.iterator(block.start)
+    val queue = mutableListOf<AbstractInsnNode>()
     @JvmField
     val insns = mutableListOf<IShaderInsn>()
     @JvmField
     val label = ShaderLabelNode()
-    lateinit var frame: ShaderFrame
-    var compiled = false
+    var currentInsn: AbstractInsnNode? = null
         private set
-    private var ended = false
+    var localDelegate: ShaderLocalDelegate = this
+        internal set
+    lateinit var frame: ShaderFrame
+    private var end: IShaderInsn? = null
 
-    fun hasNext() = iterator.hasNext() && iterator.nextIndex() < block.end
+    init {
+        insns.add(ShaderInsnNode(OP_LABEL, label))
+
+        val iterator = method.node.instructions.iterator(block.start)
+
+        while (iterator.nextIndex() < block.end) {
+            queue.add(iterator.next())
+        }
+    }
+
+    override fun createLocalVariable(
+        type: ShaderBytecodeType,
+        label: ShaderLabelNode
+    ): ShaderLocal.Variable {
+        val variable = ShaderVariable(ShaderBytecodeType.Pointer(STORAGE_CLASS_FUNCTION, type), label)
+        insns.add(ShaderInsnNode(OP_VARIABLE, variable.type, variable.label, variable.type.storageClass, variable.initializer))
+        return ShaderLocal.Variable(variable)
+    }
 
     override fun write(
         builder: ShaderBytecodeBuilder,
         buffer: ExpandingByteBuffer
     ) {
         insns.forEach { it.write(builder, buffer) }
+        end!!.write(builder, buffer)
     }
 
     fun compile() {
-        if (compiled) {
-            return
-        }
+        if (queue.isNotEmpty()) {
+            println("Compiling branch ${block.index}")
 
-        compiled = true
-        println("Compiling branch ${block.index}")
+            while (queue.isNotEmpty()) {
+                compileNext()
+            }
 
-        insns.add(ShaderInsnNode(OP_LABEL, label))
-
-        while (hasNext() && !ended) {
-            compileNext()
-        }
-
-        if (!ended) {
-            val target = method.getOrLoadBranch(block.index + 1).label
-            insns.add(ShaderInsnNode(OP_BRANCH, target))
+            if (end == null) {
+                end = ShaderInsnNode(OP_BRANCH, method.getOrLoadBranch(block.index + 1).label)
+            }
         }
     }
 
@@ -66,8 +81,9 @@ class ShaderMethodBranch(
         val value = frame.pop()
         val target = method.getOrLoadBranch(method.cfg.blocksByInsn[target]!!).label
         val bool = ShaderLabelNode()
+        val body = method.getOrLoadBranch(block.index + 1).label//ShaderLabelNode()
 
-        insns.add(
+        end = IShaderInsn.multi(
             if (value is ShaderStackValue.Comparison) {
                 when (value.javaOpcode) {
                     Opcodes.LCMP -> ShaderInsnNode(
@@ -104,33 +120,27 @@ class ShaderMethodBranch(
                     value.load(this)!!,
                     method.cls.builder.getConstant(ShaderConstant(ShaderBytecodeType.INT, listOf(0)))
                 )
-            }
+            },
+            ShaderInsnNode(OP_SELECTION_MERGE, target, SELECTION_CONTROL_NONE),
+            ShaderInsnNode(OP_BRANCH_CONDITIONAL, bool, body, target)
         )
-
-        val body = method.getOrLoadBranch(block.index + 1).label//ShaderLabelNode()
-        insns.add(ShaderInsnNode(OP_SELECTION_MERGE, target, SELECTION_CONTROL_NONE))
-        insns.add(ShaderInsnNode(OP_BRANCH_CONDITIONAL, bool, body, target))
-
-        ended = true
     }
 
     fun jump(comparisonOpcode: Int, target: LabelNode, right: ShaderLabelNode) {
         val left = frame.pop()
         val target = method.getOrLoadBranch(method.cfg.blocksByInsn[target]!!).label
         val bool = ShaderLabelNode()
-        insns.add(ShaderInsnNode(comparisonOpcode, ShaderBytecodeType.Bool, bool, left.load(this)!!, right))
         val body = method.getOrLoadBranch(block.index + 1).label//ShaderLabelNode()
-        insns.add(ShaderInsnNode(OP_SELECTION_MERGE, target, SELECTION_CONTROL_NONE))
-        insns.add(ShaderInsnNode(OP_BRANCH_CONDITIONAL, bool, body, target))
-
-        ended = true
+        end = IShaderInsn.multi(
+            ShaderInsnNode(comparisonOpcode, ShaderBytecodeType.Bool, bool, left.load(this)!!, right),
+            ShaderInsnNode(OP_SELECTION_MERGE, target, SELECTION_CONTROL_NONE),
+            ShaderInsnNode(OP_BRANCH_CONDITIONAL, bool, body, target)
+        )
     }
 
     fun jump(target: LabelNode) {
         val target = method.getOrLoadBranch(method.cfg.blocksByInsn[target]!!).label
-        insns.add(ShaderInsnNode(OP_BRANCH, target))
-
-        ended = true
+        end = ShaderInsnNode(OP_BRANCH, target)
     }
 
     fun const(type: ShaderBytecodeType, value: Any) {
@@ -168,16 +178,13 @@ class ShaderMethodBranch(
     }
 
     fun compileNext() {
-        val insn = iterator.next()
+        val insn = queue.removeFirst()
+        currentInsn = insn
 
         when (insn.opcode) {
             -1 -> {}
 
-            Opcodes.NOP -> insns.add(
-                ShaderInsnNode(
-                    OP_NO_OP
-                )
-            )
+            Opcodes.NOP -> insns.add(ShaderInsnNode(OP_NO_OP))
 
             Opcodes.ACONST_NULL -> throw JavaShaderCompilationException("Nullability isn't supported")
 
@@ -371,14 +378,8 @@ class ShaderMethodBranch(
             // TODO RET
             // TODO switches
 
-            Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN -> {
-                insns.add(ShaderInsnNode(OP_RETURN_VALUE, frame.pop().load(this)!!))
-                ended = true
-            }
-            Opcodes.RETURN -> {
-                insns.add(ShaderInsnNode(OP_RETURN))
-                ended = true
-            }
+            Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN -> end = ShaderInsnNode(OP_RETURN_VALUE, frame.pop().load(this)!!)
+            Opcodes.RETURN -> end = ShaderInsnNode(OP_RETURN)
 
             Opcodes.GETFIELD -> {
                 insn as FieldInsnNode
@@ -487,5 +488,7 @@ class ShaderMethodBranch(
 
             else -> TODO("unsupported opcode ${insn.opcode}")
         }
+
+        currentInsn = null
     }
 }

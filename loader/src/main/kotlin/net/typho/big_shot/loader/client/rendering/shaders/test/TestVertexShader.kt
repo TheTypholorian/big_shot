@@ -28,13 +28,11 @@ class TestVertexShader : JavaShader.Vertex() {
     override fun main() {
         val vec = Vector3f(pos)
 
-        val f: Float
-
         if (vec.x > 10f) {
-            f = 5f
+            vec
         } else {
-            f = 20f
-        }
+            Vector3f(1f, 2f, 3f)
+        }.add(4f, 5f, 6f)
     }
 }
 

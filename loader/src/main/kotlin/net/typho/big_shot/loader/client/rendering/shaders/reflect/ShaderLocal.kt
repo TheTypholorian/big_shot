@@ -15,7 +15,7 @@ sealed interface ShaderLocal {
 
     fun store(insns: MutableList<IShaderInsn>, branch: ShaderMethodBranch, value: ShaderStackValue): Unit? = null
 
-    class Variable(
+    data class Variable(
         @JvmField
         val variable: ShaderVariable
     ) : ShaderLocal {

@@ -9,4 +9,15 @@ data class ShaderVariable @JvmOverloads constructor(
     val initializer: ShaderLabelNode? = null,
     @JvmField
     val location: Int? = null
-)
+) {
+    override fun toString(): String {
+        return buildString {
+            append("ShaderVariable(type=$type")
+            label.name?.let { append(", name=$it") }
+            append(", id=${label.id ?: label.hashCode()}")
+            initializer?.let { append(", initializer=$it") }
+            location?.let { append(", location=$it") }
+            append(")")
+        }
+    }
+}

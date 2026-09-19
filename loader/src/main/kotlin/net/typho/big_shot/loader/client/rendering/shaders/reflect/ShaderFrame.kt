@@ -39,28 +39,15 @@ class ShaderFrame(
             return old
         }
 
-        val name = branch.method.node.localVariables
-            ?.filter { it.index == id }
-            ?.map { it to branch.method.node.instructions.indexOf(it.end) }
-            ?.sortedBy { (local, index) -> index }
-            ?.firstOrNull { (local, index) -> index >= branch.iterator.previousIndex() }?.first?.name ?: "var${branch.method.localNameCounter++}"
+        val name = branch.currentInsn?.let { insn ->
+            branch.method.node.localVariables
+                ?.filter { it.index == id }
+                ?.map { it to branch.method.node.instructions.indexOf(it.end) }
+                ?.sortedBy { (local, index) -> index }
+                ?.firstOrNull { (local, index) -> index >= branch.method.node.instructions.indexOf(insn) }?.first?.name
+        }  ?: "var${branch.method.localNameCounter++}"
 
-        return if (type is ShaderBytecodeType.Array) {
-            ShaderLocal.NewArray(type, name)
-        } else {
-            val variable =
-                ShaderVariable(ShaderBytecodeType.Pointer(STORAGE_CLASS_FUNCTION, type), ShaderLabelNode(name))
-            branch.insns.add( // TODO
-                ShaderInsnNode(
-                    OP_VARIABLE,
-                    variable.type,
-                    variable.label,
-                    variable.type.storageClass,
-                    variable.initializer
-                )
-            )
-            ShaderLocal.Variable(variable)
-        }
+        return if (type is ShaderBytecodeType.Array) ShaderLocal.NewArray(type, name) else branch.localDelegate.createLocalVariable(type, ShaderLabelNode(name))
     }
 
     fun getOrLoadLocal(id: Int, type: ShaderBytecodeType): ShaderLocal {
@@ -143,10 +130,12 @@ class ShaderFrame(
 
     companion object {
         @JvmStatic
-        fun merge(result: ShaderMethodBranch, branches: List<ShaderMethodBranch>): ShaderFrame {
+        fun merge(result: ShaderMethodBranch, branches: List<ShaderMethodBranch>, nested: Boolean = false): ShaderFrame {
             if (branches.isEmpty()) {
                 return ShaderFrame(result, null)
             }
+
+            branches.forEach { it.compile() }
 
             if (branches.windowed(2) { (a, b) -> a.frame == b.frame }.all { it }) {
                 return ShaderFrame(result, branches.first().frame)
@@ -166,7 +155,29 @@ class ShaderFrame(
                 }
             }
 
-            TODO()
+            if (result.queue.isEmpty()) {
+                TODO()
+            }
+
+            if (!nested) {
+                result.method.cfg.getCommonParent(branches.map { it.block })?.let { parent ->
+                    val branch = result.method.getOrLoadBranch(parent.index)
+                    branches.forEach { it.localDelegate = branch }
+                }
+            }
+
+            val insn = result.queue.removeFirst()
+            println("shifting $insn")
+
+            branches.forEach { it.queue.add(insn) }
+
+            val result = merge(result, branches, true)
+
+            if (!nested) {
+                branches.forEach { it.localDelegate = it }
+            }
+
+            return result
         }
     }
 }

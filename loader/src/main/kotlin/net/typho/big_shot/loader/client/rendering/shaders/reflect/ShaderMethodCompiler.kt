@@ -24,9 +24,12 @@ class ShaderMethodCompiler(
     @JvmField
     var newObjectIdCounter = 0
 
-    fun getOrLoadBranch(id: Int): ShaderMethodBranch = branches.computeIfAbsent(id) {
-        val block = cfg.blocksByIndex[it]!!
+    fun getOrLoadBranch(id: Int): ShaderMethodBranch {
+        branches[id]?.let { return it }
+
+        val block = cfg.blocksByIndex[id]!!
         val branch = ShaderMethodBranch(this, block)
+        branches[id] = branch
 
         if (block.previous.isEmpty()) {
             if (id != 0) {
@@ -38,7 +41,7 @@ class ShaderMethodCompiler(
             branch.frame = ShaderFrame.merge(branch, block.previous.map { getOrLoadBranch(it) })
         }
 
-        branch
+        return branch
     }
 
     fun compile() {
@@ -64,7 +67,7 @@ class ShaderMethodCompiler(
             mainBranch.frame.setLocal(if (static) index else index + 1, ShaderLocal.Argument(label, type))
         }
 
-        while (branches.values.any { !it.compiled }) {
+        while (branches.values.any { it.queue.isNotEmpty() }) {
             branches.values.toList().forEach { it.compile() }
         }
 
