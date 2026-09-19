@@ -41,41 +41,10 @@ object ShaderBuilderTest {
     fun main(args: Array<String>) {
         compile()
 
-        /*
-        val builder = ShaderBytecodeBuilder(EXEC_MODEL_VERTEX)
-
-        builder.capabilities.add(CAP_SHADER)
-        builder.import("GLSL.std.450")
-
-        val main = ShaderFunction(ShaderBytecodeType.Function(ShaderBytecodeType.Void, listOf()), "main")
-        val otherFunc = ShaderFunction(ShaderBytecodeType.Function(ShaderBytecodeType.Void, listOf()), "otherFunc")
-
-        main.instructions.apply {
-            add(ShaderInsnNode(OP_LABEL, ShaderLabelNode()))
-            add(otherFunc.call(ShaderLabelNode(), listOf()))
-            add(ShaderInsnNode(OP_RETURN))
-        }
-        otherFunc.instructions.apply {
-            add(ShaderInsnNode(OP_LABEL, ShaderLabelNode()))
-            add(ShaderInsnNode(OP_RETURN))
-        }
-
-        builder.functions.add(otherFunc)
-        builder.functions.add(main)
-
-        val buffer = builder.build(main)
-
-        val array = ByteArray(buffer.limit())
-        buffer.get(0, array)
-        File("test_spirv_output.bin").writeBytes(array)
-
-        println(ShaderBytecodeUtils.spirVToGlsl(buffer.asIntBuffer()))
-         */
-
         val shader = TestVertexShader()
         shader.pos = Vector3f(1f, 2f, 3f)
         shader.pos2 = Vector3f(-10f, -5f, 20f)
-        //shader.main()
+        shader.main()
         println("output: ${Vector3f(shader.outPos).toString(NumberFormat.getInstance())}")
 
         val reader = ClassReader(File("loader/build/classes/kotlin/main/net/typho/big_shot/loader/client/rendering/shaders/test/TestVertexShader.class").absoluteFile.readBytes())

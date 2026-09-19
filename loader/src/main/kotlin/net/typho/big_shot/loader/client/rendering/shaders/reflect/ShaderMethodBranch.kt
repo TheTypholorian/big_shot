@@ -372,7 +372,7 @@ class ShaderMethodBranch(
 
                 if (insn.owner == method.cls.node.name) {
                     val node = MethodPointer.method().name(insn.name).desc(insn.desc).findOrThrow(method.cls.node)
-                    val func = method.cls.functions[node]!!
+                    val target = method.cls.methods[node]!!
                     val args = Array(Type.getArgumentCount(insn.desc)) { stack.pop().label!! }.reversedArray()
 
                     if (stack.pop() != ShaderStackValue.This) {
@@ -380,10 +380,10 @@ class ShaderMethodBranch(
                     }
 
                     val result = ShaderLabelNode()
-                    insns.add(func.call(result, *args))
+                    insns.add(target.call(result, *args))
 
-                    if (func.type.returnType != ShaderBytecodeType.Void) {
-                        stack.push(ShaderStackValue.Label(result, func.type.returnType))
+                    if (target.type.returnType != ShaderBytecodeType.Void) {
+                        stack.push(ShaderStackValue.Label(result, target.type.returnType))
                     }
 
                     return

@@ -13,7 +13,7 @@ class ShaderMethodCompiler(
     @JvmField
     val node: MethodNode,
     @JvmField
-    val func: ShaderFunction<IShaderInsn>
+    val method: ShaderMethod<IShaderInsn>
 ) {
     lateinit var cfg: ControlFlowGraph
         private set
@@ -29,7 +29,7 @@ class ShaderMethodCompiler(
     fun compile() {
         cfg = ControlFlowGraph.build(node.instructions)
         jumpTargets.clear()
-        func.insns.clear()
+        method.insns.clear()
         localNameCounter = 0
         newObjectIdCounter = 0
 
@@ -46,12 +46,12 @@ class ShaderMethodCompiler(
         Type.getArgumentTypes(node.desc).forEachIndexed { index, type ->
             val type = ShaderBytecodeType.convertJavaType(type)
             val label = ShaderLabelNode()
-            func.insns.add(ShaderInsnNode(OP_FUNCTION_PARAMETER, type, label))
+            method.insns.add(ShaderInsnNode(OP_FUNCTION_PARAMETER, type, label))
             branch.locals[if (static) index else index + 1] = ShaderLocal.Argument(label, type)
         }
 
         branch.compile()
-        func.insns.addAll(branch.insns) // TODO
+        method.insns.addAll(branch.insns) // TODO
 
         if (!branch.stack.isEmpty()) {
             throw JavaShaderCompilationException("Stack is not empty at the end of method ${node.name}")

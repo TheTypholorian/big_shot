@@ -26,7 +26,7 @@ class JavaShaderCompiler(
     @JvmField
     val variables = mutableMapOf<String, ShaderVariable>()
     @JvmField
-    val functions = mutableMapOf<MethodNode, ShaderFunction<*>>()
+    val methods = mutableMapOf<MethodNode, ShaderMethod<*>>()
 
     override fun getTypeHandler(type: Type) = typeHandlers.firstNotNullOfOrNull { it.getTypeHandler(type) }
 
@@ -83,12 +83,12 @@ class JavaShaderCompiler(
         }
 
         node.methods.filterNot { it.name == "<init>" || it.name == "<clinit>" /* TODO */ }.map { node ->
-            val function = ShaderFunction<IShaderInsn>(ShaderBytecodeType.convertJavaType(Type.getMethodType(node.desc)) as ShaderBytecodeType.Function, label = ShaderLabelNode(node.name))
-            functions[node] = function
-            builder.functions.add(function)
-            ShaderMethodCompiler(this, node, function)
+            val method = ShaderMethod<IShaderInsn>(ShaderBytecodeType.convertJavaType(Type.getMethodType(node.desc)) as ShaderBytecodeType.Function, label = ShaderLabelNode(node.name))
+            methods[node] = method
+            builder.methods.add(method)
+            ShaderMethodCompiler(this, node, method)
         }.forEach { it.compile() }
 
-        return builder.build(functions[MethodPointer.method().name("main").desc("()V").findOrThrow(node)]!!)
+        return builder.build(methods[MethodPointer.method().name("main").desc("()V").findOrThrow(node)]!!)
     }
 }
