@@ -65,7 +65,7 @@ class ShaderBytecodeBuilder(
 
         for (func in functions) {
             ShaderInsnNode(OP_FUNCTION, func.type.returnType, func.label, func.controlMask, func.type).flatten(this).get(body, true)
-            func.instructions.forEach { it.write(this, body) }
+            func.insns.forEach { it.write(this, body) }
             ShaderInsnNode(OP_FUNCTION_END).get(body, true)
         }
 

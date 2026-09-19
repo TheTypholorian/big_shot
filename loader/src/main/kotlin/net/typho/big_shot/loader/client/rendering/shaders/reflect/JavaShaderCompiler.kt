@@ -10,7 +10,7 @@ import java.nio.ByteBuffer
 class JavaShaderCompiler(
     @JvmField
     val node: ClassNode
-) : JavaShaderTypeHandler.Supplier {
+) : ShaderTypeHandler.Supplier {
     @JvmField
     val builder = ShaderBytecodeBuilder(
         when (node.superName) {
@@ -83,10 +83,10 @@ class JavaShaderCompiler(
         }
 
         node.methods.filterNot { it.name == "<init>" || it.name == "<clinit>" /* TODO */ }.map { node ->
-            val function = ShaderFunction<ShaderFunction.Instruction>(ShaderBytecodeType.convertJavaType(Type.getMethodType(node.desc)) as ShaderBytecodeType.Function, label = ShaderLabelNode(node.name))
+            val function = ShaderFunction<IShaderInsn>(ShaderBytecodeType.convertJavaType(Type.getMethodType(node.desc)) as ShaderBytecodeType.Function, label = ShaderLabelNode(node.name))
             functions[node] = function
             builder.functions.add(function)
-            JavaShaderMethodCompiler(this, node, function)
+            ShaderMethodCompiler(this, node, function)
         }.forEach { it.compile() }
 
         return builder.build(functions[MethodPointer.method().name("main").desc("()V").findOrThrow(node)]!!)

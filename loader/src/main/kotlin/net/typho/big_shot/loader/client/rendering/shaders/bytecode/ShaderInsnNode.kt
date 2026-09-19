@@ -9,7 +9,7 @@ data class ShaderInsnNode(
     val opcode: Int,
     @JvmField
     val values: List<Any>
-) : ShaderFunction.Instruction {
+) : IShaderInsn {
     constructor(opcode: Int, vararg values: Any?) : this(opcode, values.filterNotNull())
 
     val words by lazy {

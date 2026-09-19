@@ -5,30 +5,30 @@ import org.objectweb.asm.Type
 import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.MethodInsnNode
 
-object KotlinIntrinsicsTypeHandler : JavaShaderTypeHandler, JavaShaderTypeHandler.Supplier {
-    override fun getTypeHandler(type: Type): JavaShaderTypeHandler? {
+object KotlinIntrinsicsTypeHandler : ShaderTypeHandler, ShaderTypeHandler.Supplier {
+    override fun getTypeHandler(type: Type): ShaderTypeHandler? {
         return if (type.internalName == "kotlin/jvm/internal/Intrinsics") this else null
     }
 
     override fun handleFieldOp(
-        compiler: JavaShaderMethodCompiler,
+        branch: ShaderMethodBranch,
         op: FieldInsnNode
     ) {
     }
 
     override fun handleMethodCall(
-        compiler: JavaShaderMethodCompiler,
+        branch: ShaderMethodBranch,
         call: MethodInsnNode
     ) {
         repeat(Type.getArgumentCount(call.desc)) {
-            compiler.stack.pop()
+            branch.stack.pop()
         }
 
         if (call.opcode != Opcodes.INVOKESTATIC) {
-            compiler.stack.pop()
+            branch.stack.pop()
         }
     }
 
-    override fun handleCastFrom(compiler: JavaShaderMethodCompiler, from: JavaShaderMethodCompiler.StackValue) {
+    override fun handleCastFrom(branch: ShaderMethodBranch, from: ShaderStackValue) {
     }
 }
