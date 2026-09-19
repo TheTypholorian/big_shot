@@ -36,27 +36,29 @@ class ShaderMethodCompiler(
         println(cfg.blocks)
 
         for (block in cfg.blocks) {
-            val branch = ShaderMethodBranch(this, block, null) // TODO
-            branches[block.index] = branch
-            method.insns.add(branch)
+            //if (block.previous.isEmpty()) {
+                val branch = ShaderMethodBranch(this, block, null) // TODO
+                branches[block.index] = branch
+                method.insns.add(branch)
+            //}
         }
 
         val mainBranch = branches[0]!!
 
         if (!static) {
-            mainBranch.locals[0] = ShaderLocal.This
+            mainBranch.frame.setLocal(0, ShaderLocal.This)
         }
 
         Type.getArgumentTypes(node.desc).forEachIndexed { index, type ->
             val type = ShaderBytecodeType.convertJavaType(type)
             val label = ShaderLabelNode()
             method.insns.add(ShaderInsnNode(OP_FUNCTION_PARAMETER, type, label))
-            mainBranch.locals[if (static) index else index + 1] = ShaderLocal.Argument(label, type)
+            mainBranch.frame.setLocal(if (static) index else index + 1, ShaderLocal.Argument(label, type))
         }
 
         branches.values.forEach { it.compile() }
 
-        if (!mainBranch.stack.isEmpty()) {
+        if (!mainBranch.frame.isEmpty()) {
             throw JavaShaderCompilationException("Stack is not empty at the end of method ${node.name}")
         }
     }

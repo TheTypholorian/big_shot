@@ -7,24 +7,28 @@ import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderInsnNod
 import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderLabelNode
 import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderVariable
 
-class ShaderLocals(
+class ShaderFrame(
     @JvmField
     val branch: ShaderMethodBranch,
-    parent: ShaderLocals?
+    parent: ShaderFrame?
 ) {
     private val locals = mutableMapOf<Int, ShaderLocal>()
+    private val stack = mutableListOf<ShaderStackValue>()
 
     init {
-        parent?.let { locals.putAll(it.locals) }
+        parent?.let {
+            locals.putAll(it.locals)
+            stack.addAll(it.stack)
+        }
     }
 
-    operator fun get(id: Int) = locals[id]
+    fun getLocal(id: Int) = locals[id]
 
-    operator fun set(id: Int, local: ShaderLocal) {
+    fun setLocal(id: Int, local: ShaderLocal) {
         locals[id] = local
     }
 
-    fun load(id: Int, type: ShaderBytecodeType, old: ShaderLocal?): ShaderLocal {
+    fun loadLocal(id: Int, type: ShaderBytecodeType, old: ShaderLocal?): ShaderLocal {
         if (type is ShaderBytecodeType.Pointer) {
             throw IllegalArgumentException()
         }
@@ -57,5 +61,41 @@ class ShaderLocals(
         }
     }
 
-    fun getOrLoad(id: Int, type: ShaderBytecodeType) = locals.compute(id) { key, local -> load(id, type, local) }!!
+    fun getOrLoadLocal(id: Int, type: ShaderBytecodeType) = locals.compute(id) { key, local -> loadLocal(id, type, local) }!!
+
+    fun clear() {
+        locals.clear()
+        stack.clear()
+    }
+
+    fun push(value: ShaderStackValue) {
+        stack.add(value)
+        println("${stack.size} pushed $value")
+    }
+
+    fun pushNewObject() {
+        push(ShaderStackValue.NewObject(branch.method.newObjectIdCounter++))
+    }
+
+    fun pop() = stack.removeLast().also { println("${stack.size} popped $it") }
+
+    fun popVectorComponents(type: ShaderBytecodeType.Vector): Array<ShaderStackValue> = Array(type.componentCount) { pop() }.reversedArray()
+
+    fun dup() {
+        stack.add(stack.last().also { println("${stack.size + 1} dup $it") })
+    }
+
+    fun swap() {
+        val last = stack.removeLast()
+        stack.add(stack.size - 1, last)
+    }
+
+    fun peek() = stack.lastOrNull()
+
+    fun replace(value: ShaderStackValue, with: ShaderStackValue) {
+        stack.replaceAll { if (it == value) with else it }
+        println("${stack.size} replaced $value with $with")
+    }
+
+    fun isEmpty() = stack.isEmpty()
 }

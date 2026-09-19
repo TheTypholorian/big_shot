@@ -164,9 +164,9 @@ abstract class JomlVectorTypeHandler(
         fun ShaderMethodBranch.vectorStoreLoad(result: ShaderLabelNode, dest: ShaderStackValue) {
             if (dest is ShaderStackValue.LoadVariable) {
                 insns.add(ShaderInsnNode(OP_STORE, dest.variable.label, result))
-                stack.push(ShaderStackValue.LoadVariable(insns, dest.variable))
+                frame.push(ShaderStackValue.LoadVariable(insns, dest.variable))
             } else {
-                stack.push(ShaderStackValue.Label(result, dest.type))
+                frame.push(ShaderStackValue.Label(result, dest.type))
             }
         }
 
@@ -182,8 +182,8 @@ abstract class JomlVectorTypeHandler(
 
         fun ShaderMethodBranch.vectorInit(type: ShaderBytecodeType.Vector, vararg values: ShaderStackValue) {
             val vec = createVector(type, *values)
-            val self = stack.pop() as ShaderStackValue.NewObject
-            stack.replace(self, ShaderStackValue.Label(vec, type))
+            val self = frame.pop() as ShaderStackValue.NewObject
+            frame.replace(self, ShaderStackValue.Label(vec, type))
         }
     }
 
@@ -255,16 +255,16 @@ abstract class JomlVectorTypeHandler(
 
         when (op.opcode) {
             Opcodes.GETFIELD -> {
-                val vector = branch.stack.pop().label!!
+                val vector = branch.frame.pop().label!!
 
                 val result = ShaderLabelNode()
                 branch.insns.add(ShaderInsnNode(OP_COMPOSITE_EXTRACT, type, result, vector, index))
-                branch.stack.push(ShaderStackValue.Label(result, type.componentType))
+                branch.frame.push(ShaderStackValue.Label(result, type.componentType))
                 return true
             }
             Opcodes.PUTFIELD -> {
-                val value = branch.stack.pop().label!!
-                val vector = branch.stack.pop().label!!
+                val value = branch.frame.pop().label!!
+                val vector = branch.frame.pop().label!!
 
                 val ptr = ShaderLabelNode()
                 branch.insns.add(ShaderInsnNode(OP_ACCESS_CHAIN, ShaderBytecodeType.Pointer(STORAGE_CLASS_FUNCTION, type.componentType), ptr, vector, branch.method.cls.builder.getConstant(ShaderConstant(ShaderBytecodeType.INT, listOf(index)))))
@@ -278,13 +278,13 @@ abstract class JomlVectorTypeHandler(
 
     protected open fun handleSimpleOp(branch: ShaderMethodBranch, opcode: Int, desc: String): Boolean {
         when (desc) {
-            opSinglePrimDestDesc -> branch.vectorOp(opcode, type, branch.stack.pop(), branch.createVector(type, branch.stack.pop()), branch.stack.pop().label!!)
-            opPrimDestDesc -> branch.vectorOp(opcode, type, branch.stack.pop(), branch.createVector(type, *branch.stack.popVectorComponents(type)), branch.stack.pop().label!!)
-            opImmutableDestDesc -> branch.vectorOp(opcode, type, branch.stack.pop(), branch.stack.pop().label!!, branch.stack.pop().label!!)
+            opSinglePrimDestDesc -> branch.vectorOp(opcode, type, branch.frame.pop(), branch.createVector(type, branch.frame.pop()), branch.frame.pop().label!!)
+            opPrimDestDesc -> branch.vectorOp(opcode, type, branch.frame.pop(), branch.createVector(type, *branch.frame.popVectorComponents(type)), branch.frame.pop().label!!)
+            opImmutableDestDesc -> branch.vectorOp(opcode, type, branch.frame.pop(), branch.frame.pop().label!!, branch.frame.pop().label!!)
 
-            opSinglePrimSelfDesc -> branch.vectorOpSelf(opcode, type, branch.createVector(type, branch.stack.pop()), branch.stack.pop())
-            opPrimSelfDesc -> branch.vectorOpSelf(opcode, type, branch.createVector(type, *branch.stack.popVectorComponents(type)), branch.stack.pop())
-            opImmutableSelfDesc -> branch.vectorOpSelf(opcode, type, branch.stack.pop().label!!, branch.stack.pop())
+            opSinglePrimSelfDesc -> branch.vectorOpSelf(opcode, type, branch.createVector(type, branch.frame.pop()), branch.frame.pop())
+            opPrimSelfDesc -> branch.vectorOpSelf(opcode, type, branch.createVector(type, *branch.frame.popVectorComponents(type)), branch.frame.pop())
+            opImmutableSelfDesc -> branch.vectorOpSelf(opcode, type, branch.frame.pop().label!!, branch.frame.pop())
 
             else -> return false
         }
@@ -308,11 +308,11 @@ abstract class JomlVectorTypeHandler(
     protected open fun handleConstructor(branch: ShaderMethodBranch, desc: String): Boolean {
         when (desc) {
             "()V" -> handleNoArgVector(branch)
-            voidSinglePrimDesc -> branch.vectorInit(type, branch.stack.pop())
-            voidPrimDesc -> branch.vectorInit(type, *branch.stack.popVectorComponents(type))
-            voidImmutableDesc -> branch.vectorInit(type, branch.stack.pop())
+            voidSinglePrimDesc -> branch.vectorInit(type, branch.frame.pop())
+            voidPrimDesc -> branch.vectorInit(type, *branch.frame.popVectorComponents(type))
+            voidImmutableDesc -> branch.vectorInit(type, branch.frame.pop())
             voidPrimArrayDesc -> {
-                val array = branch.stack.pop() as ShaderStackValue.LoadVariable
+                val array = branch.frame.pop() as ShaderStackValue.LoadVariable
                 val components = Array(type.componentCount) { index ->
                     val pointer = ShaderLabelNode()
                     val value = ShaderLabelNode()
@@ -331,22 +331,22 @@ abstract class JomlVectorTypeHandler(
                             when (args[0]) {
                                 Double3c.classType, Float3c.classType, Int3c.classType -> { // TODO abstractify
                                     val targetLabel = ShaderLabelNode()
-                                    branch.insns.add(ShaderInsnNode(OP_VECTOR_SHUFFLE, type, targetLabel, branch.stack.pop().label!!, 0, 1))
+                                    branch.insns.add(ShaderInsnNode(OP_VECTOR_SHUFFLE, type, targetLabel, branch.frame.pop().label!!, 0, 1))
                                     branch.vectorInit(type, ShaderStackValue.Label(targetLabel, type))
                                     return true
                                 }
                             }
                         }
 
-                        val input = branch.stack.pop()
+                        val input = branch.frame.pop()
                         val processed = castConstructorType(branch, args[0], input, type) ?: return false
                         branch.vectorInit(type, processed)
                         return true
                     }
                     2 -> {
                         if (args[1] == componentType && type.componentCount > 2) {
-                            val z = branch.stack.pop()
-                            val xy = branch.stack.pop()
+                            val z = branch.frame.pop()
+                            val xy = branch.frame.pop()
 
                             val processed = castConstructorType(branch, args[0], xy, type.copy(componentCount = type.componentCount - 1)) ?: return false
                             branch.vectorInit(type, processed, z)
@@ -355,9 +355,9 @@ abstract class JomlVectorTypeHandler(
                     }
                     3 -> {
                         if (args[1] == componentType && args[2] == componentType && type.componentCount > 3) {
-                            val w = branch.stack.pop()
-                            val z = branch.stack.pop()
-                            val xy = branch.stack.pop()
+                            val w = branch.frame.pop()
+                            val z = branch.frame.pop()
+                            val xy = branch.frame.pop()
 
                             val processed = castConstructorType(branch, args[0], xy, type.copy(componentCount = type.componentCount - 2)) ?: return false
                             branch.vectorInit(type, processed, z, w)

@@ -21,11 +21,11 @@ object KotlinIntrinsicsTypeHandler : ShaderTypeHandler, ShaderTypeHandler.Suppli
         call: MethodInsnNode
     ) {
         repeat(Type.getArgumentCount(call.desc)) {
-            branch.stack.pop()
+            branch.frame.pop()
         }
 
         if (call.opcode != Opcodes.INVOKESTATIC) {
-            branch.stack.pop()
+            branch.frame.pop()
         }
     }
 

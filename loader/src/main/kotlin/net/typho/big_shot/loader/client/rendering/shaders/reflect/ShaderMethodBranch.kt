@@ -11,8 +11,10 @@ import org.objectweb.asm.tree.IincInsnNode
 import org.objectweb.asm.tree.IntInsnNode
 import org.objectweb.asm.tree.JumpInsnNode
 import org.objectweb.asm.tree.LabelNode
+import org.objectweb.asm.tree.LdcInsnNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.TypeInsnNode
+import org.objectweb.asm.tree.VarInsnNode
 
 class ShaderMethodBranch(
     @JvmField
@@ -28,9 +30,7 @@ class ShaderMethodBranch(
     @JvmField
     val label = ShaderLabelNode()
     @JvmField
-    val locals: ShaderLocals = ShaderLocals(this, parent?.locals)
-    @JvmField
-    val stack: ShaderStack = ShaderStack(this, parent?.stack)
+    val frame: ShaderFrame = ShaderFrame(this, parent?.frame)
     private var ended = false
 
     fun hasNext() = iterator.hasNext() && iterator.nextIndex() < block.end
@@ -57,7 +57,7 @@ class ShaderMethodBranch(
 
     fun jump(comparisonOpcode: Int, floatComparisonOpcode: Int, target: LabelNode) {
         val target = method.branches[method.cfg.blocksByInsn[target]!!]!!.label
-        val value = stack.pop()
+        val value = frame.pop()
         val bool = ShaderLabelNode()
 
         insns.add(
@@ -109,7 +109,7 @@ class ShaderMethodBranch(
 
     fun jump(comparisonOpcode: Int, target: LabelNode, right: ShaderLabelNode) {
         val target = method.branches[method.cfg.blocksByInsn[target]!!]!!.label
-        val left = stack.pop()
+        val left = frame.pop()
         val bool = ShaderLabelNode()
         insns.add(ShaderInsnNode(comparisonOpcode, ShaderBytecodeType.Bool, bool, left.label!!, right))
         val body = method.branches[block.index + 1]!!.label//ShaderLabelNode()
@@ -127,37 +127,37 @@ class ShaderMethodBranch(
     }
 
     fun const(type: ShaderBytecodeType, value: Any) {
-        stack.push(ShaderStackValue.Constant(method.cls.builder, ShaderConstant(type, listOf(value))))
+        frame.push(ShaderStackValue.Constant(method.cls.builder, ShaderConstant(type, listOf(value))))
     }
 
     fun cast(opcode: Int, to: ShaderBytecodeType) {
-        val v = stack.pop()
+        val v = frame.pop()
 
         if (v is ShaderStackValue.Constant) {
             v.const.tryCast(to)?.let {
-                stack.push(ShaderStackValue.Constant(v.builder, it))
+                frame.push(ShaderStackValue.Constant(v.builder, it))
                 return
             }
         }
 
         val r = ShaderLabelNode()
         insns.add(ShaderInsnNode(opcode, to, r, v.label))
-        stack.push(ShaderStackValue.Label(r, to))
+        frame.push(ShaderStackValue.Label(r, to))
     }
 
     fun math(opcode: Int, result: ShaderBytecodeType) {
-        val b = stack.pop().label!!
-        val a = stack.pop().label!!
+        val b = frame.pop().label!!
+        val a = frame.pop().label!!
         val r = ShaderLabelNode()
         insns.add(ShaderInsnNode(opcode, result, r, a, b))
-        stack.push(ShaderStackValue.Label(r, result))
+        frame.push(ShaderStackValue.Label(r, result))
     }
 
     fun mathUnary(opcode: Int, result: ShaderBytecodeType) {
-        val a = stack.pop().label!!
+        val a = frame.pop().label!!
         val r = ShaderLabelNode()
         insns.add(ShaderInsnNode(opcode, result, r, a))
-        stack.push(ShaderStackValue.Label(r, result))
+        frame.push(ShaderStackValue.Label(r, result))
     }
 
     fun compileNext() {
@@ -194,7 +194,7 @@ class ShaderMethodBranch(
 
             Opcodes.BIPUSH, Opcodes.SIPUSH -> const(
                 ShaderBytecodeType.INT, (insn as IntInsnNode).operand)
-            Opcodes.LDC -> when (val const = (insn as org.objectweb.asm.tree.LdcInsnNode).cst) {
+            Opcodes.LDC -> when (val const = (insn as LdcInsnNode).cst) {
                 is Boolean -> const(ShaderBytecodeType.Bool, const)
                 is Byte -> const(ShaderBytecodeType.BYTE, const)
                 is Short -> const(ShaderBytecodeType.SHORT, const)
@@ -202,36 +202,36 @@ class ShaderMethodBranch(
                 is Long -> const(ShaderBytecodeType.LONG, const)
                 is Float -> const(ShaderBytecodeType.FLOAT, const)
                 is Double -> const(ShaderBytecodeType.DOUBLE, const)
-                is String -> stack.push(ShaderStackValue.StringConstant(const))
+                is String -> frame.push(ShaderStackValue.StringConstant(const))
                 else -> throw JavaShaderCompilationException("Unsupported constant $const")
             }
 
             Opcodes.ILOAD, Opcodes.LLOAD, Opcodes.FLOAD, Opcodes.DLOAD, Opcodes.ALOAD -> {
-                val local = locals[(insn as org.objectweb.asm.tree.VarInsnNode).`var`]!!
+                val local = frame.getLocal((insn as VarInsnNode).`var`)!!
 
                 if (local is ShaderLocal.This) {
-                    stack.push(ShaderStackValue.This)
+                    frame.push(ShaderStackValue.This)
                 } else {
-                    stack.push(local.load(method)!!)
+                    frame.push(local.load(method)!!)
                 }
             }
             Opcodes.IALOAD, Opcodes.LALOAD, Opcodes.FALOAD, Opcodes.DALOAD, Opcodes.AALOAD, Opcodes.BALOAD, Opcodes.CALOAD, Opcodes.SALOAD -> {
-                val index = stack.pop().label!!
-                val array = stack.pop() as ShaderStackValue.Array
+                val index = frame.pop().label!!
+                val array = frame.pop() as ShaderStackValue.Array
 
                 val pointer = ShaderLabelNode()
                 val value = ShaderLabelNode()
                 insns.add(ShaderInsnNode(OP_ACCESS_CHAIN, array.variable.type, pointer, array.variable.label, index))
                 insns.add(ShaderInsnNode(OP_LOAD, array.variable.type.rootType, value, pointer))
-                stack.push(ShaderStackValue.Label(value, array.variable.type.rootType))
+                frame.push(ShaderStackValue.Label(value, array.variable.type.rootType))
             }
 
             Opcodes.ISTORE, Opcodes.LSTORE, Opcodes.FSTORE, Opcodes.DSTORE, Opcodes.ASTORE -> {
-                insn as org.objectweb.asm.tree.VarInsnNode
+                insn as VarInsnNode
 
-                when (val value = stack.pop()) {
+                when (val value = frame.pop()) {
                     is ShaderStackValue.Array -> {
-                        val local = locals.getOrLoad(insn.`var`, value.type)
+                        val local = frame.getOrLoadLocal(insn.`var`, value.type)
 
                         if (local !is ShaderLocal.NewArray) {
                             TODO("reassigning arrays?")
@@ -241,7 +241,7 @@ class ShaderMethodBranch(
                             value.variable.label.name = local.name
                         }
 
-                        locals[insn.`var`] = ShaderLocal.Variable(insns, value.variable)
+                        frame.setLocal(insn.`var`, ShaderLocal.Variable(insns, value.variable))
                     }
                     // TODO
                     /*
@@ -249,28 +249,28 @@ class ShaderMethodBranch(
                         throw JavaShaderCompilationException("Cannot store a mutable ${value.variable.type.type} value from one variable in another, since joml vectors are mutable while glsl vectors are immutable.")
                     }
                      */
-                    else -> locals.getOrLoad(insn.`var`, value.type!!).store(method, value)!!
+                    else -> frame.getOrLoadLocal(insn.`var`, value.type!!).store(method, value)!!
                 }
             }
 
             Opcodes.IASTORE, Opcodes.LASTORE, Opcodes.FASTORE, Opcodes.DASTORE, Opcodes.AASTORE, Opcodes.BASTORE, Opcodes.CASTORE, Opcodes.SASTORE -> {
-                val value = stack.pop().label!!
-                val index = stack.pop().label!!
-                val array = stack.pop() as ShaderStackValue.Array
+                val value = frame.pop().label!!
+                val index = frame.pop().label!!
+                val array = frame.pop() as ShaderStackValue.Array
 
                 val pointer = ShaderLabelNode()
                 insns.add(ShaderInsnNode(OP_ACCESS_CHAIN, array.variable.type, pointer, array.variable.label, index))
                 insns.add(ShaderInsnNode(OP_STORE, pointer, value))
             }
 
-            Opcodes.POP -> stack.pop()
+            Opcodes.POP -> frame.pop()
             Opcodes.POP2 -> {
-                stack.pop()
-                stack.pop()
+                frame.pop()
+                frame.pop()
             }
-            Opcodes.DUP -> stack.dup()
+            Opcodes.DUP -> frame.dup()
             Opcodes.DUP_X1, Opcodes.DUP_X2, Opcodes.DUP2, Opcodes.DUP2_X1, Opcodes.DUP2_X2 -> TODO("DUP opcode ${insn.opcode}")
-            Opcodes.SWAP -> stack.swap()
+            Opcodes.SWAP -> frame.swap()
 
             Opcodes.IADD -> math(OP_I_ADD, ShaderBytecodeType.INT)
             Opcodes.LADD -> math(OP_I_ADD, ShaderBytecodeType.LONG)
@@ -318,7 +318,7 @@ class ShaderMethodBranch(
             Opcodes.IINC -> {
                 insn as IincInsnNode
                 val value = method.cls.builder.getConstant(ShaderConstant(ShaderBytecodeType.INT, listOf(insn.incr)))
-                val local = locals.getOrLoad(insn.`var`, ShaderBytecodeType.INT)
+                val local = frame.getOrLoadLocal(insn.`var`, ShaderBytecodeType.INT)
                 val temp = local.load(method)!!
                 val result = ShaderLabelNode()
 
@@ -341,7 +341,7 @@ class ShaderMethodBranch(
             Opcodes.I2B -> cast(OP_S_CONVERT, ShaderBytecodeType.BYTE)
             Opcodes.I2C, Opcodes.I2S -> cast(OP_S_CONVERT, ShaderBytecodeType.SHORT)
 
-            Opcodes.LCMP, Opcodes.FCMPL, Opcodes.FCMPG, Opcodes.DCMPL, Opcodes.DCMPG -> stack.push(ShaderStackValue.Comparison(insn.opcode, stack.pop(), stack.pop()))
+            Opcodes.LCMP, Opcodes.FCMPL, Opcodes.FCMPG, Opcodes.DCMPL, Opcodes.DCMPG -> frame.push(ShaderStackValue.Comparison(insn.opcode, frame.pop(), frame.pop()))
 
             Opcodes.IFEQ -> jump(OP_I_NOT_EQUAL, OP_F_ORD_NOT_EQUAL, (insn as JumpInsnNode).label)
             Opcodes.IFNE -> jump(OP_I_EQUAL, OP_F_ORD_EQUAL, (insn as JumpInsnNode).label)
@@ -350,12 +350,12 @@ class ShaderMethodBranch(
             Opcodes.IFGT -> jump(OP_S_LESS_THAN_EQUAL, OP_F_ORD_LESS_THAN_EQUAL, (insn as JumpInsnNode).label)
             Opcodes.IFLE -> jump(OP_S_GREATER_THAN, OP_F_ORD_GREATER_THAN, (insn as JumpInsnNode).label)
 
-            Opcodes.IF_ICMPEQ -> jump(OP_I_NOT_EQUAL, (insn as JumpInsnNode).label, stack.pop().label!!)
-            Opcodes.IF_ICMPNE -> jump(OP_I_EQUAL, (insn as JumpInsnNode).label, stack.pop().label!!)
-            Opcodes.IF_ICMPLT -> jump(OP_S_GREATER_THAN_EQUAL, (insn as JumpInsnNode).label, stack.pop().label!!)
-            Opcodes.IF_ICMPGE -> jump(OP_S_LESS_THAN, (insn as JumpInsnNode).label, stack.pop().label!!)
-            Opcodes.IF_ICMPGT -> jump(OP_S_LESS_THAN_EQUAL, (insn as JumpInsnNode).label, stack.pop().label!!)
-            Opcodes.IF_ICMPLE -> jump(OP_S_GREATER_THAN, (insn as JumpInsnNode).label, stack.pop().label!!)
+            Opcodes.IF_ICMPEQ -> jump(OP_I_NOT_EQUAL, (insn as JumpInsnNode).label, frame.pop().label!!)
+            Opcodes.IF_ICMPNE -> jump(OP_I_EQUAL, (insn as JumpInsnNode).label, frame.pop().label!!)
+            Opcodes.IF_ICMPLT -> jump(OP_S_GREATER_THAN_EQUAL, (insn as JumpInsnNode).label, frame.pop().label!!)
+            Opcodes.IF_ICMPGE -> jump(OP_S_LESS_THAN, (insn as JumpInsnNode).label, frame.pop().label!!)
+            Opcodes.IF_ICMPGT -> jump(OP_S_LESS_THAN_EQUAL, (insn as JumpInsnNode).label, frame.pop().label!!)
+            Opcodes.IF_ICMPLE -> jump(OP_S_GREATER_THAN, (insn as JumpInsnNode).label, frame.pop().label!!)
 
             Opcodes.GOTO -> jump((insn as JumpInsnNode).label)
 
@@ -365,7 +365,7 @@ class ShaderMethodBranch(
             // TODO switches
 
             Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN -> {
-                insns.add(ShaderInsnNode(OP_RETURN_VALUE, stack.pop().label!!))
+                insns.add(ShaderInsnNode(OP_RETURN_VALUE, frame.pop().label!!))
                 ended = true
             }
             Opcodes.RETURN -> {
@@ -381,11 +381,11 @@ class ShaderMethodBranch(
                     return
                 }
 
-                val target = stack.pop()
+                val target = frame.pop()
 
                 if (target == ShaderStackValue.This) {
                     method.cls.variables[insn.name]?.let { v ->
-                        stack.push(ShaderStackValue.LoadVariable(insns, v))
+                        frame.push(ShaderStackValue.LoadVariable(insns, v))
                         return
                     }
                 }
@@ -400,8 +400,8 @@ class ShaderMethodBranch(
                     return
                 }
 
-                val value = stack.pop()
-                val target = stack.pop()
+                val value = frame.pop()
+                val target = frame.pop()
 
                 if (target == ShaderStackValue.This) {
                     method.cls.variables[insn.name]?.let { v ->
@@ -420,9 +420,9 @@ class ShaderMethodBranch(
                 if (insn.owner == method.cls.node.name) {
                     val node = MethodPointer.method().name(insn.name).desc(insn.desc).findOrThrow(method.cls.node)
                     val target = method.cls.methods[node]!!
-                    val args = Array(Type.getArgumentCount(insn.desc)) { stack.pop().label!! }.reversedArray()
+                    val args = Array(Type.getArgumentCount(insn.desc)) { frame.pop().label!! }.reversedArray()
 
-                    if (stack.pop() != ShaderStackValue.This) {
+                    if (frame.pop() != ShaderStackValue.This) {
                         throw AssertionError()
                     }
 
@@ -430,7 +430,7 @@ class ShaderMethodBranch(
                     insns.add(target.call(result, *args))
 
                     if (target.type.returnType != ShaderBytecodeType.Void) {
-                        stack.push(ShaderStackValue.Label(result, target.type.returnType))
+                        frame.push(ShaderStackValue.Label(result, target.type.returnType))
                     }
 
                     return
@@ -442,9 +442,9 @@ class ShaderMethodBranch(
                 }
             }
 
-            Opcodes.NEW -> stack.pushNewObject()
+            Opcodes.NEW -> frame.pushNewObject()
             Opcodes.NEWARRAY -> {
-                val length = stack.pop()
+                val length = frame.pop()
 
                 if (length !is ShaderStackValue.Constant) {
                     throw JavaShaderCompilationException("Cannot create arrays of dynamic size")
@@ -466,13 +466,13 @@ class ShaderMethodBranch(
                         ShaderBytecodeType.Array(type, length.const.value.first() as Int)
                     )
                 )
-                stack.push(ShaderStackValue.Array(variable))
+                frame.push(ShaderStackValue.Array(variable))
                 insns.add(ShaderInsnNode(OP_VARIABLE, variable.type, variable.label, variable.type.storageClass, variable.initializer))
             }
             // TODO ANEWARRAY
             // TODO ARRAYLENGTH
             // TODO ATHROW
-            Opcodes.CHECKCAST -> method.cls.getTypeHandler(Type.getObjectType((insn as TypeInsnNode).desc))?.handleCastFrom(this, stack.peek()!!)
+            Opcodes.CHECKCAST -> method.cls.getTypeHandler(Type.getObjectType((insn as TypeInsnNode).desc))?.handleCastFrom(this, frame.peek()!!)
             // TODO INSTANCEOF
             // TODO synchronization
             // TODO MULTIANEWARRAY
