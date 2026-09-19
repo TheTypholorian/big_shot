@@ -40,17 +40,15 @@ class JavaShaderMethodCompiler(
             return old
         }
 
-        println("loading local $id $insnIndex $type $old")
+        val name = node.localVariables
+            ?.filter { it.index == id }
+            ?.map { it to node.instructions.indexOf(it.end) }
+            ?.sortedBy { (local, index) -> index }
+            ?.firstOrNull { (local, index) -> index >= insnIndex }?.first?.name ?: "var${localNameCounter++}"
 
         return if (type is ShaderBytecodeType.Array) {
-            Local.NewArray(type)
+            Local.NewArray(type, name)
         } else {
-            val name = node.localVariables
-                ?.filter { it.index == id }
-                ?.map { it to node.instructions.indexOf(it.end) }
-                ?.sortedBy { (local, index) -> index }
-                ?.firstOrNull { (local, index) -> index >= insnIndex }?.first?.name ?: "var${localNameCounter++}"
-
             val variable = ShaderVariable(ShaderBytecodeType.Pointer(STORAGE_CLASS_FUNCTION, type), ShaderLabelNode(name))
             function.instructions.add(ShaderInsnNode(OP_VARIABLE, variable.type, variable.label, variable.type.storageClass, variable.initializer))
             Local.Variable(variable)
@@ -64,8 +62,6 @@ class JavaShaderMethodCompiler(
         locals.clear()
         jumpTargets.clear()
         localNameCounter = 0
-
-        //frames = Analyzer(BasicInterpreter()).analyze(parent.node.name, node)
 
         val static = node.access and Opcodes.ACC_STATIC != 0
 
@@ -169,6 +165,10 @@ class JavaShaderMethodCompiler(
 
                                 if (local !is Local.NewArray) {
                                     TODO("reassigning arrays?")
+                                }
+
+                                if (value.variable.label.name == null) {
+                                    value.variable.label.name = local.name
                                 }
 
                                 locals[insn.`var`] = Local.Variable(value.variable)
@@ -650,7 +650,9 @@ class JavaShaderMethodCompiler(
         }
 
         data class NewArray(
-            override val type: ShaderBytecodeType.Array
+            override val type: ShaderBytecodeType.Array,
+            @JvmField
+            val name: String?
         ) : Local
 
         object This : Local
