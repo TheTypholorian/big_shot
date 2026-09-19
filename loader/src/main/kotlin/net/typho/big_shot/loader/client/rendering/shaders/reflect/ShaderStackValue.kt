@@ -1,39 +1,33 @@
 package net.typho.big_shot.loader.client.rendering.shaders.reflect
 
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.IShaderInsn
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.OP_LOAD
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderBytecodeBuilder
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderBytecodeType
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderConstant
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderInsnNode
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderLabelNode
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderVariable
+import net.typho.big_shot.loader.client.rendering.shaders.bytecode.*
 
 sealed interface ShaderStackValue {
-    val label: ShaderLabelNode?
-        get() = null
     val type: ShaderBytecodeType?
         get() = null
 
-    fun tryMerge(other: ShaderStackValue): (() -> ShaderStackValue)? {
-        return if (this == other) { { this } } else null
-    }
+    fun load(branch: ShaderMethodBranch): ShaderLabelNode? = null
 
     data class Label(
-        override val label: ShaderLabelNode,
+        @JvmField
+        val label: ShaderLabelNode,
         override val type: ShaderBytecodeType?
-    ) : ShaderStackValue
+    ) : ShaderStackValue {
+        override fun load(branch: ShaderMethodBranch) = label
+    }
 
     class LoadVariable(
-        insns: MutableList<IShaderInsn>,
         @JvmField
         val variable: ShaderVariable
     ) : ShaderStackValue {
-        override val label: ShaderLabelNode by lazy {
-            ShaderLabelNode().also { insns.add(ShaderInsnNode(OP_LOAD, variable.type.type, it, variable.label)) }
-        }
         override val type: ShaderBytecodeType
             get() = variable.type.type
+
+        override fun load(branch: ShaderMethodBranch): ShaderLabelNode {
+            val label = ShaderLabelNode()
+            branch.insns.add(ShaderInsnNode(OP_LOAD, variable.type.type, label, variable.label))
+            return label
+        }
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -55,13 +49,14 @@ sealed interface ShaderStackValue {
 
     data class Constant(
         @JvmField
-        val builder: ShaderBytecodeBuilder,
-        @JvmField
         val const: ShaderConstant
     ) : ShaderStackValue {
-        override val label: ShaderLabelNode by lazy { builder.getConstant(const) }
         override val type: ShaderBytecodeType
             get() = const.type
+
+        override fun load(branch: ShaderMethodBranch): ShaderLabelNode {
+            return branch.method.cls.builder.getConstant(const)
+        }
 
         /*
         override fun tryMerge(other: StackValue): (() -> StackValue)? {

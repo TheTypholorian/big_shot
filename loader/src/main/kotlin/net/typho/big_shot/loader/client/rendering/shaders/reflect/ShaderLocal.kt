@@ -11,23 +11,21 @@ sealed interface ShaderLocal {
     val type: ShaderBytecodeType?
         get() = null
 
-    fun load(compiler: ShaderMethodCompiler): ShaderStackValue? = null
+    fun load(insns: MutableList<IShaderInsn>, branch: ShaderMethodBranch): ShaderStackValue? = null
 
-    fun store(compiler: ShaderMethodCompiler, value: ShaderStackValue): Unit? = null
+    fun store(insns: MutableList<IShaderInsn>, branch: ShaderMethodBranch, value: ShaderStackValue): Unit? = null
 
-    data class Variable(
-        @JvmField
-        val insns: MutableList<IShaderInsn>,
+    class Variable(
         @JvmField
         val variable: ShaderVariable
     ) : ShaderLocal {
         override val type: ShaderBytecodeType
             get() = variable.type.type
 
-        override fun load(compiler: ShaderMethodCompiler) = ShaderStackValue.LoadVariable(insns, variable)
+        override fun load(insns: MutableList<IShaderInsn>, branch: ShaderMethodBranch) = ShaderStackValue.LoadVariable(variable)
 
-        override fun store(compiler: ShaderMethodCompiler, value: ShaderStackValue) {
-            insns.add(ShaderInsnNode(OP_STORE, variable.label, value.label!!))
+        override fun store(insns: MutableList<IShaderInsn>, branch: ShaderMethodBranch, value: ShaderStackValue) {
+            insns.add(ShaderInsnNode(OP_STORE, variable.label, value.load(branch)!!))
         }
     }
 
@@ -36,9 +34,9 @@ sealed interface ShaderLocal {
         val label: ShaderLabelNode,
         override val type: ShaderBytecodeType
     ) : ShaderLocal {
-        override fun load(compiler: ShaderMethodCompiler) = ShaderStackValue.Label(label, type)
+        override fun load(insns: MutableList<IShaderInsn>, branch: ShaderMethodBranch) = ShaderStackValue.Label(label, type)
 
-        override fun store(compiler: ShaderMethodCompiler, value: ShaderStackValue) {
+        override fun store(insns: MutableList<IShaderInsn>, branch: ShaderMethodBranch, value: ShaderStackValue) {
             throw JavaShaderCompilationException("Cannot modify an argument's value, create a new variable.")
         }
     }

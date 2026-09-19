@@ -113,6 +113,10 @@ sealed interface ShaderBytecodeType {
         return builder.types.computeIfAbsent(this) { createLabelNode() }
     }
 
+    override fun toString(): String
+
+    fun toFrameString(): String
+
     interface Numerical : ShaderBytecodeType {
         fun getConstant(value: Number): ShaderConstant
     }
@@ -128,6 +132,10 @@ sealed interface ShaderBytecodeType {
         override fun toString(): String {
             return "void"
         }
+
+        override fun toFrameString(): String {
+            return "V"
+        }
     }
 
     object Bool : ShaderBytecodeType {
@@ -140,6 +148,10 @@ sealed interface ShaderBytecodeType {
 
         override fun toString(): String {
             return "boolean"
+        }
+
+        override fun toFrameString(): String {
+            return "Z"
         }
     }
 
@@ -168,6 +180,10 @@ sealed interface ShaderBytecodeType {
                 append(width)
             }
         }
+
+        override fun toFrameString(): String {
+            return "I"
+        }
     }
 
     data class Float(
@@ -186,6 +202,10 @@ sealed interface ShaderBytecodeType {
         override fun toString(): String {
             return "float$width"
         }
+
+        override fun toFrameString(): String {
+            return "F"
+        }
     }
 
     data class Vector(
@@ -199,13 +219,17 @@ sealed interface ShaderBytecodeType {
             return ShaderInsnNode(OP_TYPE_VECTOR, result, componentType, componentCount)
         }
 
+        override fun getLabel(builder: ShaderBytecodeBuilder): ShaderLabelNode {
+            componentType.getLabel(builder)
+            return super.getLabel(builder)
+        }
+
         override fun toString(): String {
             return "Vec$componentCount$componentType"
         }
 
-        override fun getLabel(builder: ShaderBytecodeBuilder): ShaderLabelNode {
-            componentType.getLabel(builder)
-            return super.getLabel(builder)
+        override fun toFrameString(): String {
+            return "{$this}"
         }
     }
 
@@ -220,13 +244,17 @@ sealed interface ShaderBytecodeType {
             return ShaderInsnNode(OP_TYPE_MATRIX, result, columnType, columnCount)
         }
 
+        override fun getLabel(builder: ShaderBytecodeBuilder): ShaderLabelNode {
+            columnType.getLabel(builder)
+            return super.getLabel(builder)
+        }
+
         override fun toString(): String {
             return "Mat$columnCount$columnType"
         }
 
-        override fun getLabel(builder: ShaderBytecodeBuilder): ShaderLabelNode {
-            columnType.getLabel(builder)
-            return super.getLabel(builder)
+        override fun toFrameString(): String {
+            return "{$this}"
         }
     }
 
@@ -241,14 +269,18 @@ sealed interface ShaderBytecodeType {
             return ShaderInsnNode(OP_TYPE_FUNCTION, result, returnType, parameterTypes)
         }
 
-        override fun toString(): String {
-            return "$returnType(${parameterTypes.joinToString()})"
-        }
-
         override fun getLabel(builder: ShaderBytecodeBuilder): ShaderLabelNode {
             returnType.getLabel(builder)
             parameterTypes.forEach { it.getLabel(builder) }
             return super.getLabel(builder)
+        }
+
+        override fun toString(): String {
+            return "$returnType(${parameterTypes.joinToString()})"
+        }
+
+        override fun toFrameString(): String {
+            return "{$this}"
         }
     }
 
@@ -266,13 +298,17 @@ sealed interface ShaderBytecodeType {
             return length?.let { ShaderInsnNode(OP_TYPE_ARRAY, result, elementType, builder.getConstant(ShaderConstant(INT, listOf(it)))) } ?: ShaderInsnNode(OP_TYPE_RUNTIME_ARRAY, result, elementType)
         }
 
+        override fun getLabel(builder: ShaderBytecodeBuilder): ShaderLabelNode {
+            elementType.getLabel(builder)
+            return super.getLabel(builder)
+        }
+
         override fun toString(): String {
             return length?.let { "$elementType[$it]" } ?: "$elementType[]"
         }
 
-        override fun getLabel(builder: ShaderBytecodeBuilder): ShaderLabelNode {
-            elementType.getLabel(builder)
-            return super.getLabel(builder)
+        override fun toFrameString(): String {
+            return "{$this}"
         }
     }
 
@@ -295,13 +331,17 @@ sealed interface ShaderBytecodeType {
             return ShaderInsnNode(OP_TYPE_POINTER, result, storageClass, type)
         }
 
-        override fun toString(): String {
-            return "Pointer$type"
-        }
-
         override fun getLabel(builder: ShaderBytecodeBuilder): ShaderLabelNode {
             type.getLabel(builder)
             return super.getLabel(builder)
+        }
+
+        override fun toString(): String {
+            return "$type*"
+        }
+
+        override fun toFrameString(): String {
+            return "{$this}"
         }
     }
 

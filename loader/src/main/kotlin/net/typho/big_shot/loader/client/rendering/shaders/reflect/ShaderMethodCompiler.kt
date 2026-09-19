@@ -18,12 +18,28 @@ class ShaderMethodCompiler(
         private set
     var static: Boolean = false
         private set
-    @JvmField
-    val branches = mutableMapOf<Int, ShaderMethodBranch>()
+    private val branches = mutableMapOf<Int, ShaderMethodBranch>()
     @JvmField
     var localNameCounter = 0
     @JvmField
     var newObjectIdCounter = 0
+
+    fun getOrLoadBranch(id: Int): ShaderMethodBranch = branches.computeIfAbsent(id) {
+        val block = cfg.blocksByIndex[it]!!
+        val branch = ShaderMethodBranch(this, block)
+
+        if (block.previous.isEmpty()) {
+            if (id != 0) {
+                throw AssertionError()
+            }
+
+            branch.frame = ShaderFrame(branch, null)
+        } else {
+            branch.frame = ShaderFrame.merge(branch, block.previous.map { getOrLoadBranch(it) })
+        }
+
+        branch
+    }
 
     fun compile() {
         cfg = ControlFlowGraph.build(node.instructions)
@@ -35,15 +51,7 @@ class ShaderMethodCompiler(
 
         println(cfg.blocks)
 
-        for (block in cfg.blocks) {
-            //if (block.previous.isEmpty()) {
-                val branch = ShaderMethodBranch(this, block, null) // TODO
-                branches[block.index] = branch
-                method.insns.add(branch)
-            //}
-        }
-
-        val mainBranch = branches[0]!!
+        val mainBranch = getOrLoadBranch(0)
 
         if (!static) {
             mainBranch.frame.setLocal(0, ShaderLocal.This)
@@ -56,10 +64,14 @@ class ShaderMethodCompiler(
             mainBranch.frame.setLocal(if (static) index else index + 1, ShaderLocal.Argument(label, type))
         }
 
-        branches.values.forEach { it.compile() }
+        while (branches.values.any { !it.compiled }) {
+            branches.values.toList().forEach { it.compile() }
+        }
 
-        if (!mainBranch.frame.isEmpty()) {
-            throw JavaShaderCompilationException("Stack is not empty at the end of method ${node.name}")
+        method.insns.addAll(branches.values)
+
+        if (!mainBranch.frame.isStackEmpty()) {
+            throw JavaShaderCompilationException("Stack is not empty at the end of method ${node.name}, still contains ${mainBranch.frame}")
         }
     }
 }
