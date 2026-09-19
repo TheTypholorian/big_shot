@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.shaders.bytecode
+package net.typho.big_shot.loader.client.rendering.shaders.bytecode
 
 data class ShaderVariable @JvmOverloads constructor(
     @JvmField

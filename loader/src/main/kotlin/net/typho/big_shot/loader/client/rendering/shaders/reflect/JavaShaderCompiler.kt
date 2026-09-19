@@ -1,8 +1,8 @@
-package net.typho.big_shot.loader.shaders.reflect
+package net.typho.big_shot.loader.client.rendering.shaders.reflect
 
 import net.typho.asm_util.ASMUtil.mapIterator
 import net.typho.asm_util.method.MethodPointer
-import net.typho.big_shot.loader.shaders.bytecode.*
+import net.typho.big_shot.loader.client.rendering.shaders.bytecode.*
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.*
 import java.nio.ByteBuffer
@@ -14,10 +14,10 @@ class JavaShaderCompiler(
     @JvmField
     val builder = ShaderBytecodeBuilder(
         when (node.superName) {
-            $$"net/typho/big_shot/loader/shaders/reflect/JavaShader$Vertex" -> EXEC_MODEL_VERTEX
-            $$"net/typho/big_shot/loader/shaders/reflect/JavaShader$Fragment" -> EXEC_MODEL_FRAGMENT
-            $$"net/typho/big_shot/loader/shaders/reflect/JavaShader$Geometry" -> EXEC_MODEL_GEOMETRY
-            $$"net/typho/big_shot/loader/shaders/reflect/JavaShader$Compute" -> EXEC_MODEL_GL_COMPUTE
+            $$"net/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShader$Vertex" -> EXEC_MODEL_VERTEX
+            $$"net/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShader$Fragment" -> EXEC_MODEL_FRAGMENT
+            $$"net/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShader$Geometry" -> EXEC_MODEL_GEOMETRY
+            $$"net/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShader$Compute" -> EXEC_MODEL_GL_COMPUTE
             else -> throw IllegalStateException("${node.name} does not directly extend any JavaShader type")
         }
     )
@@ -38,22 +38,22 @@ class JavaShaderCompiler(
 
         node.visibleAnnotations?.forEach { anno ->
             when (anno.desc) {
-                $$"Lnet/typho/big_shot/loader/shaders/reflect/JavaShader$Input;" -> {
+                $$"Lnet/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShader$Input;" -> {
                     storageClass = STORAGE_CLASS_INPUT
                     type = Type.getType(node.desc)
                     anno.mapIterator().forEach { (key, value) -> if (key == "name" && (value as String).isNotEmpty()) name = value }
                 }
-                $$"Lnet/typho/big_shot/loader/shaders/reflect/JavaShader$Output;" -> {
+                $$"Lnet/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShader$Output;" -> {
                     storageClass = STORAGE_CLASS_OUTPUT
                     type = Type.getType(node.desc)
                     anno.mapIterator().forEach { (key, value) -> if (key == "name" && (value as String).isNotEmpty()) name = value }
                 }
-                $$"Lnet/typho/big_shot/loader/shaders/reflect/JavaShader$Uniform;" -> {
+                $$"Lnet/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShader$Uniform;" -> {
                     storageClass = STORAGE_CLASS_UNIFORM
                     type = Type.getType(node.desc)
                     anno.mapIterator().forEach { (key, value) -> if (key == "name" && (value as String).isNotEmpty()) name = value }
                 }
-                $$"Lnet/typho/big_shot/loader/shaders/reflect/JavaShader$Location;" -> {
+                $$"Lnet/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShader$Location;" -> {
                     anno.mapIterator().forEach { (key, value) -> if (key == "value") location = value as Int }
                 }
             }

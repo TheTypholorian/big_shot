@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.shaders.error
+package net.typho.big_shot.loader.client.rendering.shaders.error
 
 import org.lwjgl.util.shaderc.Shaderc.*
 

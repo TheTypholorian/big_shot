@@ -1,8 +1,8 @@
-package net.typho.big_shot.loader.shaders.bytecode
+package net.typho.big_shot.loader.client.rendering.shaders.bytecode
 
-import net.typho.big_shot.loader.shaders.ShaderType
-import net.typho.big_shot.loader.shaders.error.ShadercException
-import net.typho.big_shot.loader.shaders.error.SpvcException
+import net.typho.big_shot.loader.client.rendering.shaders.ShaderType
+import net.typho.big_shot.loader.client.rendering.shaders.error.ShadercException
+import net.typho.big_shot.loader.client.rendering.shaders.error.SpvcException
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.util.shaderc.Shaderc.*
 import org.lwjgl.util.spvc.Spvc.*

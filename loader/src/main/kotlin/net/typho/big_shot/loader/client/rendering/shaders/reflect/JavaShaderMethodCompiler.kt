@@ -1,7 +1,7 @@
-package net.typho.big_shot.loader.shaders.reflect
+package net.typho.big_shot.loader.client.rendering.shaders.reflect
 
 import net.typho.asm_util.method.MethodPointer
-import net.typho.big_shot.loader.shaders.bytecode.*
+import net.typho.big_shot.loader.client.rendering.shaders.bytecode.*
 import net.typho.big_shot.loader.util.ExpandingByteBuffer
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type

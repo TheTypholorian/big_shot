@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.shaders.reflect
+package net.typho.big_shot.loader.client.rendering.shaders.reflect
 
 data class AttributeName(
     @JvmField

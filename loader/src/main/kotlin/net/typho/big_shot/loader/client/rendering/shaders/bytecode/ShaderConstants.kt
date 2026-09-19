@@ -1,6 +1,7 @@
 @file:Suppress("unused")
 @file:JvmName("ShaderConstants")
-package net.typho.big_shot.loader.shaders.bytecode
+
+package net.typho.big_shot.loader.client.rendering.shaders.bytecode
 
 const val SPIRV_MAGIC = 0x7230203
 

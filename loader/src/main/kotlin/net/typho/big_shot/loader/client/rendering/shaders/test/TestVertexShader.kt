@@ -1,6 +1,6 @@
-package net.typho.big_shot.loader.shaders.test
+package net.typho.big_shot.loader.client.rendering.shaders.test
 
-import net.typho.big_shot.loader.shaders.reflect.JavaShader
+import net.typho.big_shot.loader.client.rendering.shaders.reflect.JavaShader
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3f

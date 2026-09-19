@@ -1,6 +1,6 @@
-package net.typho.big_shot.loader.shaders.bytecode
+package net.typho.big_shot.loader.client.rendering.shaders.bytecode
 
-import net.typho.big_shot.loader.shaders.reflect.JavaShaderCompilationException
+import net.typho.big_shot.loader.client.rendering.shaders.reflect.JavaShaderCompilationException
 import org.objectweb.asm.Type
 
 sealed interface ShaderBytecodeType {

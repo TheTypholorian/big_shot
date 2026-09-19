@@ -1,4 +1,4 @@
-package net.typho.big_shot.loader.shaders
+package net.typho.big_shot.loader.client.rendering.shaders
 
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL43.*

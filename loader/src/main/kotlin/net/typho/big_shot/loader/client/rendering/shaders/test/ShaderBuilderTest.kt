@@ -1,9 +1,9 @@
-package net.typho.big_shot.loader.shaders.test
+package net.typho.big_shot.loader.client.rendering.shaders.test
 
-import net.typho.big_shot.loader.shaders.ShaderType
-import net.typho.big_shot.loader.shaders.bytecode.ShaderBytecodeType
-import net.typho.big_shot.loader.shaders.bytecode.ShaderBytecodeUtils
-import net.typho.big_shot.loader.shaders.reflect.JavaShaderCompiler
+import net.typho.big_shot.loader.client.rendering.shaders.ShaderType
+import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderBytecodeType
+import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderBytecodeUtils
+import net.typho.big_shot.loader.client.rendering.shaders.reflect.JavaShaderCompiler
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.objectweb.asm.ClassReader
@@ -78,7 +78,7 @@ object ShaderBuilderTest {
         //shader.main()
         println("output: ${Vector3f(shader.outPos).toString(NumberFormat.getInstance())}")
 
-        val reader = ClassReader(File("loader/build/classes/kotlin/main/net/typho/big_shot/loader/shaders/test/TestVertexShader.class").absoluteFile.readBytes())
+        val reader = ClassReader(File("loader/build/classes/kotlin/main/net/typho/big_shot/loader/client/rendering/shaders/test/TestVertexShader.class").absoluteFile.readBytes())
         val node = ClassNode()
         reader.accept(node, 0)
 
