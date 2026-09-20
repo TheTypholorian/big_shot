@@ -77,7 +77,8 @@ class ShaderMethodBranch(
 
     fun jump(comparisonOpcode: Int, floatComparisonOpcode: Int, target: LabelNode) {
         val value = frame.pop()
-        val target = method.getOrLoadBranch(method.cfg.blocksByInsn[target]!!).label
+        val targetIndex = method.cfg.blocksByInsn[target]!!
+        val target = method.getOrLoadBranch(targetIndex).label
         val bool = ShaderLabelNode()
         val body = method.getOrLoadBranch(block.index + 1).label//ShaderLabelNode()
 
@@ -119,19 +120,20 @@ class ShaderMethodBranch(
                     method.cls.builder.getConstant(ShaderConstant(ShaderBytecodeType.INT, listOf(0)))
                 )
             },
-            ShaderInsnNode(OP_SELECTION_MERGE, target, SELECTION_CONTROL_NONE),
+            ShaderInsnNode(OP_SELECTION_MERGE, method.getOrLoadBranch(targetIndex + 1).label, SELECTION_CONTROL_NONE),
             ShaderInsnNode(OP_BRANCH_CONDITIONAL, bool, body, target)
         )
     }
 
     fun jump(comparisonOpcode: Int, target: LabelNode, right: ShaderLabelNode) {
         val left = frame.pop()
-        val target = method.getOrLoadBranch(method.cfg.blocksByInsn[target]!!).label
+        val targetIndex = method.cfg.blocksByInsn[target]!!
+        val target = method.getOrLoadBranch(targetIndex).label
         val bool = ShaderLabelNode()
         val body = method.getOrLoadBranch(block.index + 1).label//ShaderLabelNode()
         end = IShaderInsn.multi(
             ShaderInsnNode(comparisonOpcode, ShaderBytecodeType.Bool, bool, left.load(this)!!, right),
-            ShaderInsnNode(OP_SELECTION_MERGE, target, SELECTION_CONTROL_NONE),
+            ShaderInsnNode(OP_SELECTION_MERGE, method.getOrLoadBranch(targetIndex + 1).label, SELECTION_CONTROL_NONE),
             ShaderInsnNode(OP_BRANCH_CONDITIONAL, bool, body, target)
         )
     }

@@ -255,19 +255,19 @@ abstract class JomlVectorTypeHandler(
 
         when (op.opcode) {
             Opcodes.GETFIELD -> {
-                val vector = branch.frame.pop().load(branch)!!
+                val vector = branch.frame.pop() as ShaderStackValue.LoadVariable
 
                 val result = ShaderLabelNode()
-                branch.insns.add(ShaderInsnNode(OP_COMPOSITE_EXTRACT, type, result, vector, index))
+                branch.insns.add(ShaderInsnNode(OP_COMPOSITE_EXTRACT, type, result, vector.variable.label, index))
                 branch.frame.push(ShaderStackValue.Label(result, type.componentType))
                 return true
             }
             Opcodes.PUTFIELD -> {
                 val value = branch.frame.pop().load(branch)!!
-                val vector = branch.frame.pop().load(branch)!!
+                val vector = branch.frame.pop() as ShaderStackValue.LoadVariable
 
                 val ptr = ShaderLabelNode()
-                branch.insns.add(ShaderInsnNode(OP_ACCESS_CHAIN, ShaderBytecodeType.Pointer(STORAGE_CLASS_FUNCTION, type.componentType), ptr, vector, branch.method.cls.builder.getConstant(ShaderConstant(ShaderBytecodeType.INT, listOf(index)))))
+                branch.insns.add(ShaderInsnNode(OP_ACCESS_CHAIN, ShaderBytecodeType.Pointer(STORAGE_CLASS_FUNCTION, type.componentType), ptr, vector.variable.label, branch.method.cls.builder.getConstant(ShaderConstant(ShaderBytecodeType.INT, listOf(index)))))
                 branch.insns.add(ShaderInsnNode(OP_STORE, ptr, value))
                 return true
             }
