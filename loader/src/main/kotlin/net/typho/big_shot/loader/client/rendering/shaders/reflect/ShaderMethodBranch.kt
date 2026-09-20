@@ -371,8 +371,20 @@ class ShaderMethodBranch(
             // TODO RET
             // TODO switches
 
-            Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN -> end = ShaderInsnNode(OP_RETURN_VALUE, frame.pop().load(this)!!)
-            Opcodes.RETURN -> end = ShaderInsnNode(OP_RETURN)
+            Opcodes.IRETURN, Opcodes.LRETURN, Opcodes.FRETURN, Opcodes.DRETURN, Opcodes.ARETURN -> {
+                if (!frame.isStackEmpty()) {
+                    throw JavaShaderCompilationException("Stack is not empty at the end of method ${method.node.name} (branch ${block.index}, insn index ${method.node.instructions.indexOf(insn)}), still contains $frame")
+                }
+
+                end = ShaderInsnNode(OP_RETURN_VALUE, frame.pop().load(this)!!)
+            }
+            Opcodes.RETURN -> {
+                if (!frame.isStackEmpty()) {
+                    throw JavaShaderCompilationException("Stack is not empty at the end of method ${method.node.name} (branch ${block.index}, insn index ${method.node.instructions.indexOf(insn)}), still contains $frame")
+                }
+
+                end = ShaderInsnNode(OP_RETURN)
+            }
 
             Opcodes.GETFIELD -> {
                 insn as FieldInsnNode

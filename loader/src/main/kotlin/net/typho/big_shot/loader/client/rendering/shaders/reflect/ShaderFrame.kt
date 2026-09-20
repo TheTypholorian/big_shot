@@ -3,6 +3,7 @@ package net.typho.big_shot.loader.client.rendering.shaders.reflect
 import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderBytecodeType
 import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderLabelNode
 import org.objectweb.asm.Opcodes
+import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.VarInsnNode
 import kotlin.to
 
@@ -73,7 +74,7 @@ class ShaderFrame(
         stackIndex--
         val value = stack[stackIndex]
         println("$stackIndex popped $value")
-        stack[stackIndex] = null // TODO
+        stack[stackIndex] = null
         return value!!
     }
 
@@ -90,7 +91,7 @@ class ShaderFrame(
         stack[stackIndex - 2] = last
     }
 
-    fun peek() = stack.lastOrNull()
+    fun peek() = stack[stackIndex - 1]
 
     fun replace(value: ShaderStackValue, with: ShaderStackValue) {
         repeat(stackIndex) {
@@ -150,19 +151,20 @@ class ShaderFrame(
         }
 
         @JvmStatic
-        fun merge(result: ShaderMethodBranch, branches: List<ShaderMethodBranch>): ShaderFrame {
+        fun merge(next: ShaderMethodBranch, branches: List<ShaderMethodBranch>): ShaderFrame {
             if (branches.isEmpty()) {
-                return ShaderFrame(result, null)
+                return ShaderFrame(next, null)
             }
 
             if (!canMerge(branches)) {
                 val parent by lazy {
-                    result.method.cfg.getCommonParent(branches.map { it.block })!!
+                    next.method.cfg.getCommonParent(branches.map { it.block })!!
                 }
 
                 do {
                     println("Cannot merge frames")
                     branches.forEach { println(it.frame) }
+                    /*
                     branches.windowed(2) { (a, b) ->
                         println("Locals")
                         a.frame.locals.zip(b.frame.locals).forEach { (a, b) ->
@@ -174,11 +176,18 @@ class ShaderFrame(
                             println("\t$a == $b: ${a == b}")
                         }
                     }
+                     */
 
-                    val insn = result.queue.removeFirst()
-                    println("shifting $insn")
+                    var insn: AbstractInsnNode
+
+                    do {
+                        insn = next.queue.removeFirst()
+                    } while (insn.opcode == -1)
+
+                    println("shifting $insn from ${next.block.index} to ${branches.map { it.block.index }}")
 
                     when (insn.opcode) {
+                        // TODO
                         Opcodes.ISTORE, Opcodes.LSTORE, Opcodes.FSTORE, Opcodes.DSTORE, Opcodes.ASTORE -> {
                             insn as VarInsnNode
 
@@ -199,7 +208,7 @@ class ShaderFrame(
                             if (matches.all { it }) {
                                 branches.forEach { it.queue.add(insn) }
                             } else if (matches.none { it }) {
-                                val local = result.method.getOrLoadBranch(parent.index).createLocalVariable(type, ShaderLabelNode(getLocalName(insn, result.method)))
+                                val local = next.method.getOrLoadBranch(parent.index).createLocalVariable(type, ShaderLabelNode(getLocalName(insn, next.method)))
 
                                 branches.zip(values).forEach { (branch, value) ->
                                     branch.frame.getOrLoadLocal(insn.`var`, type) { local }.store(branch.insns, branch, value)
@@ -231,7 +240,7 @@ class ShaderFrame(
             branches.forEach { it.queue.add(insn) }
              */
 
-            return ShaderFrame(result, branches.first().frame)
+            return ShaderFrame(next, branches.first().frame)
         }
     }
 }

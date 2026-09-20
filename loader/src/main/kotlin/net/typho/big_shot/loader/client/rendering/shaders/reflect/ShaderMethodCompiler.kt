@@ -72,9 +72,5 @@ class ShaderMethodCompiler(
         }
 
         method.insns.addAll(branches.values)
-
-        if (!mainBranch.frame.isStackEmpty()) {
-            throw JavaShaderCompilationException("Stack is not empty at the end of method ${node.name}, still contains ${mainBranch.frame}")
-        }
     }
 }
