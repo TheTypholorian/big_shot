@@ -22,7 +22,7 @@ class ShaderMethodBranch(
     val method: ShaderMethodCompiler,
     @JvmField
     val block: BasicBlock
-) : IShaderInsn, ShaderLocalDelegate {
+) : IShaderInsn {
     @JvmField
     val queue = mutableListOf<AbstractInsnNode>()
     @JvmField
@@ -31,8 +31,6 @@ class ShaderMethodBranch(
     val label = ShaderLabelNode()
     var currentInsn: AbstractInsnNode? = null
         private set
-    var localDelegate: ShaderLocalDelegate = this
-        internal set
     lateinit var frame: ShaderFrame
     private var end: IShaderInsn? = null
 
@@ -46,7 +44,7 @@ class ShaderMethodBranch(
         }
     }
 
-    override fun createLocalVariable(
+    fun createLocalVariable(
         type: ShaderBytecodeType,
         label: ShaderLabelNode
     ): ShaderLocal.Variable {
@@ -206,8 +204,7 @@ class ShaderMethodBranch(
             Opcodes.DCONST_0 -> const(ShaderBytecodeType.DOUBLE, 0.0)
             Opcodes.DCONST_1 -> const(ShaderBytecodeType.DOUBLE, 1.0)
 
-            Opcodes.BIPUSH, Opcodes.SIPUSH -> const(
-                ShaderBytecodeType.INT, (insn as IntInsnNode).operand)
+            Opcodes.BIPUSH, Opcodes.SIPUSH -> const(ShaderBytecodeType.INT, (insn as IntInsnNode).operand)
             Opcodes.LDC -> when (val const = (insn as LdcInsnNode).cst) {
                 is Boolean -> const(ShaderBytecodeType.Bool, const)
                 is Byte -> const(ShaderBytecodeType.BYTE, const)
@@ -257,12 +254,6 @@ class ShaderMethodBranch(
 
                         frame.setLocal(insn.`var`, ShaderLocal.Variable(value.variable))
                     }
-                    // TODO
-                    /*
-                    is ShaderStackValue.LoadVariable -> if (value.variable.type.type is ShaderBytecodeType.Vector) {
-                        throw JavaShaderCompilationException("Cannot store a mutable ${value.variable.type.type} value from one variable in another, since joml vectors are mutable while glsl vectors are immutable.")
-                    }
-                     */
                     else -> frame.getOrLoadLocal(insn.`var`, value.type!!).store(insns, this, value)!!
                 }
             }

@@ -1,11 +1,10 @@
 package net.typho.big_shot.loader.client.rendering.shaders.reflect
 
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.OP_VARIABLE
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.STORAGE_CLASS_FUNCTION
 import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderBytecodeType
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderInsnNode
 import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderLabelNode
-import net.typho.big_shot.loader.client.rendering.shaders.bytecode.ShaderVariable
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.tree.VarInsnNode
+import kotlin.to
 
 class ShaderFrame(
     @JvmField
@@ -30,29 +29,27 @@ class ShaderFrame(
         locals[id] = local
     }
 
-    fun loadLocal(id: Int, type: ShaderBytecodeType, old: ShaderLocal?): ShaderLocal {
+    fun localMatches(id: Int, type: ShaderBytecodeType): Boolean {
         if (type is ShaderBytecodeType.Pointer) {
             throw IllegalArgumentException()
         }
 
-        if (old?.type == type) {
-            return old
-        }
-
-        val name = branch.currentInsn?.let { insn ->
-            branch.method.node.localVariables
-                ?.filter { it.index == id }
-                ?.map { it to branch.method.node.instructions.indexOf(it.end) }
-                ?.sortedBy { (local, index) -> index }
-                ?.firstOrNull { (local, index) -> index >= branch.method.node.instructions.indexOf(insn) }?.first?.name
-        }  ?: "var${branch.method.localNameCounter++}"
-
-        return if (type is ShaderBytecodeType.Array) ShaderLocal.NewArray(type, name) else branch.localDelegate.createLocalVariable(type, ShaderLabelNode(name))
+        return locals[id]?.type == type
     }
 
     fun getOrLoadLocal(id: Int, type: ShaderBytecodeType): ShaderLocal {
-        val local = locals[id]
-        val new = loadLocal(id, type, local)
+        return getOrLoadLocal(id, type) {
+            val name = getLocalName(branch.currentInsn as? VarInsnNode, branch.method)
+            if (type is ShaderBytecodeType.Array) ShaderLocal.NewArray(type, name) else branch.createLocalVariable(type, ShaderLabelNode(name))
+        }
+    }
+
+    fun getOrLoadLocal(id: Int, type: ShaderBytecodeType, supplier: () -> ShaderLocal): ShaderLocal {
+        if (localMatches(id, type)) {
+            return locals[id]!!
+        }
+
+        val new = supplier()
         locals[id] = new
         return new
     }
@@ -60,6 +57,7 @@ class ShaderFrame(
     fun clear() {
         locals.fill(null)
         stack.fill(null)
+        stackIndex = 0
     }
 
     fun push(value: ShaderStackValue) {
@@ -130,31 +128,92 @@ class ShaderFrame(
 
     companion object {
         @JvmStatic
-        fun merge(result: ShaderMethodBranch, branches: List<ShaderMethodBranch>, nested: Boolean = false): ShaderFrame {
+        fun getLocalName(insn: VarInsnNode?, method: ShaderMethodCompiler): String {
+            return insn?.let {
+                method.node.localVariables
+                    ?.filter { it.index == insn.`var` }
+                    ?.map { it to method.node.instructions.indexOf(it.end) }
+                    ?.sortedBy { (local, index) -> index }
+                    ?.firstOrNull { (local, index) -> index >= method.node.instructions.indexOf(insn) }?.first?.name
+            } ?: "var${method.localNameCounter++}"
+        }
+
+        @JvmStatic
+        fun canMerge(branches: List<ShaderMethodBranch>): Boolean {
             if (branches.isEmpty()) {
-                return ShaderFrame(result, null)
+                throw IllegalArgumentException()
             }
 
             branches.forEach { it.compile() }
 
-            if (branches.windowed(2) { (a, b) -> a.frame == b.frame }.all { it }) {
-                return ShaderFrame(result, branches.first().frame)
+            return branches.windowed(2) { (a, b) -> a.frame == b.frame }.all { it }
+        }
+
+        @JvmStatic
+        fun merge(result: ShaderMethodBranch, branches: List<ShaderMethodBranch>): ShaderFrame {
+            if (branches.isEmpty()) {
+                return ShaderFrame(result, null)
             }
 
-            println("Cannot merge frames")
-            branches.forEach { println(it.frame) }
-            branches.windowed(2) { (a, b) ->
-                println("Locals")
-                a.frame.locals.zip(b.frame.locals).forEach { (a, b) ->
-                    println("\t$a == $b: ${a == b}")
+            if (!canMerge(branches)) {
+                val parent by lazy {
+                    result.method.cfg.getCommonParent(branches.map { it.block })!!
                 }
 
-                println("Stack")
-                a.frame.stack.zip(b.frame.stack).forEach { (a, b) ->
-                    println("\t$a == $b: ${a == b}")
-                }
+                do {
+                    println("Cannot merge frames")
+                    branches.forEach { println(it.frame) }
+                    branches.windowed(2) { (a, b) ->
+                        println("Locals")
+                        a.frame.locals.zip(b.frame.locals).forEach { (a, b) ->
+                            println("\t$a == $b: ${a == b}")
+                        }
+
+                        println("Stack")
+                        a.frame.stack.zip(b.frame.stack).forEach { (a, b) ->
+                            println("\t$a == $b: ${a == b}")
+                        }
+                    }
+
+                    val insn = result.queue.removeFirst()
+                    println("shifting $insn")
+
+                    when (insn.opcode) {
+                        Opcodes.ISTORE, Opcodes.LSTORE, Opcodes.FSTORE, Opcodes.DSTORE, Opcodes.ASTORE -> {
+                            insn as VarInsnNode
+
+                            val values = branches.map { it.frame.pop() }
+
+                            if (values.windowed(2) { (a, b) -> a.type == b.type }.any { !it }) {
+                                throw AssertionError()
+                            }
+
+                            val type = values.first().type!!
+
+                            if (type is ShaderBytecodeType.Array) {
+                                TODO()
+                            }
+
+                            val matches = branches.map { it.frame.localMatches(insn.`var`, type) }
+
+                            if (matches.all { it }) {
+                                branches.forEach { it.queue.add(insn) }
+                            } else if (matches.none { it }) {
+                                val local = result.method.getOrLoadBranch(parent.index).createLocalVariable(type, ShaderLabelNode(getLocalName(insn, result.method)))
+
+                                branches.zip(values).forEach { (branch, value) ->
+                                    branch.frame.getOrLoadLocal(insn.`var`, type) { local }.store(branch.insns, branch, value)
+                                }
+                            } else {
+                                throw AssertionError(matches)
+                            }
+                        }
+                        else -> branches.forEach { it.queue.add(insn) }
+                    }
+                } while (!canMerge(branches))
             }
 
+            /*
             if (result.queue.isEmpty()) {
                 TODO()
             }
@@ -170,14 +229,9 @@ class ShaderFrame(
             println("shifting $insn")
 
             branches.forEach { it.queue.add(insn) }
+             */
 
-            val result = merge(result, branches, true)
-
-            if (!nested) {
-                branches.forEach { it.localDelegate = it }
-            }
-
-            return result
+            return ShaderFrame(result, branches.first().frame)
         }
     }
 }
