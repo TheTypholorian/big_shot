@@ -31,6 +31,13 @@ class ShaderMethodCompiler(
         val branch = ShaderMethodBranch(this, block)
         branches[id] = branch
 
+        if (id == 0) {
+            branch.rootBranch = branch
+        } else {
+            branch.rootBranch = getOrLoadBranch(0)
+        }
+
+        println("Initializing frame for branch $id")
         if (block.previous.isEmpty()) {
             if (id != 0) {
                 throw AssertionError()
@@ -38,9 +45,38 @@ class ShaderMethodCompiler(
 
             branch.frame = ShaderFrame(branch, null)
         } else {
-            branch.frame = ShaderFrame.merge(branch, block.previous.map { getOrLoadBranch(it) })
-        }
+            println("Loading previous branches ${block.previous}")
+            var previous = block.previous.map { getOrLoadBranch(it) }
 
+            while (previous.all { it.initializing }) {
+                previous = previous.flatMap { it.block.previous }.map { getOrLoadBranch(it) }
+                println("Going back to ${previous.map { it.block.index }}")
+
+                if (previous.isEmpty()) {
+                    println("Initialized frame for branch $id to empty")
+                    branch.frame = ShaderFrame.merge(branch, previous)
+                    branch.initializing = false
+                    return branch
+                }
+            }
+
+            if (previous.none { it.initializing }) {
+                println("\tMerging $id ${block.previous}")
+                branch.frame = ShaderFrame.merge(branch, previous)
+            } else {
+                val remaining = previous.filter { !it.initializing }
+
+                if (!ShaderFrame.canMerge(remaining)) {
+                    println("Warning: Remaining branches ${remaining.map { it.block.index }} cannot be merged")
+                    branch.frame = ShaderFrame(branch, cfg.getCommonParent(previous.map { it.block })?.let { getOrLoadBranch(it.index).frame })
+                } else {
+                    branch.frame = ShaderFrame(branch, remaining.first().frame)
+                }
+            }
+        }
+        println("Initialized frame for branch $id")
+
+        branch.initializing = false
         return branch
     }
 

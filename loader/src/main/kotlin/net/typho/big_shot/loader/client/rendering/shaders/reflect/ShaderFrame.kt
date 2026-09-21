@@ -63,7 +63,7 @@ class ShaderFrame(
 
     fun push(value: ShaderStackValue) {
         stack[stackIndex++] = value
-        println("$stackIndex pushed $value")
+        println("\t$stackIndex pushed $value")
     }
 
     fun pushNewObject() {
@@ -73,7 +73,7 @@ class ShaderFrame(
     fun pop(): ShaderStackValue {
         stackIndex--
         val value = stack[stackIndex]
-        println("$stackIndex popped $value")
+        println("\t$stackIndex popped $value")
         stack[stackIndex] = null
         return value!!
     }
@@ -81,7 +81,7 @@ class ShaderFrame(
     fun popVectorComponents(type: ShaderBytecodeType.Vector): Array<ShaderStackValue> = Array(type.componentCount) { pop() }.reversedArray()
 
     fun dup() {
-        val v = stack[stackIndex - 1].also { println("${stackIndex + 1} dup $it") }!!
+        val v = stack[stackIndex - 1].also { println("\t${stackIndex + 1} dup $it") }!!
         stack[stackIndex++] = v
     }
 
@@ -100,7 +100,7 @@ class ShaderFrame(
             }
         }
 
-        println("$stackIndex replaced $value with $with")
+        println("\t$stackIndex replaced $value with $with")
     }
 
     fun isStackEmpty() = stackIndex == 0
@@ -111,7 +111,7 @@ class ShaderFrame(
 
         other as ShaderFrame
 
-        if (!locals.contentEquals(other.locals)) return false
+        if (!(0 until minOf(locals.indexOfLast { it != null } + 1, other.locals.indexOfLast { it != null } + 1)).all { locals[it] == other.locals[it] }) return false
         if (!stack.contentEquals(other.stack)) return false
 
         return true
@@ -124,7 +124,7 @@ class ShaderFrame(
     }
 
     override fun toString(): String {
-        return "Locals=[${locals.joinToString(separator = "") { if (it == null) "." else if (it == ShaderLocal.This) "{this}" else it.type?.toFrameString() ?: "?" }}] Stack=[${stack.joinToString(separator = "") { if (it == null) "." else if (it == ShaderStackValue.This) "{this}" else it.type?.toFrameString() ?: "?" }}]"
+        return "Locals=[${locals.joinToString(separator = "") { if (it == null) "_" else if (it == ShaderLocal.This) "{this}" else it.type?.toFrameString() ?: "?" }}] Stack=[${stack.joinToString(separator = "") { if (it == null) "_" else if (it == ShaderStackValue.This) "{this}" else it.type?.toFrameString() ?: "?" }}]"
     }
 
     companion object {
@@ -164,7 +164,6 @@ class ShaderFrame(
                 do {
                     println("Cannot merge frames")
                     branches.forEach { println(it.frame) }
-                    /*
                     branches.windowed(2) { (a, b) ->
                         println("Locals")
                         a.frame.locals.zip(b.frame.locals).forEach { (a, b) ->
@@ -176,7 +175,6 @@ class ShaderFrame(
                             println("\t$a == $b: ${a == b}")
                         }
                     }
-                     */
 
                     var insn: AbstractInsnNode
 
@@ -221,24 +219,6 @@ class ShaderFrame(
                     }
                 } while (!canMerge(branches))
             }
-
-            /*
-            if (result.queue.isEmpty()) {
-                TODO()
-            }
-
-            if (!nested) {
-                result.method.cfg.getCommonParent(branches.map { it.block })?.let { parent ->
-                    val branch = result.method.getOrLoadBranch(parent.index)
-                    branches.forEach { it.localDelegate = branch }
-                }
-            }
-
-            val insn = result.queue.removeFirst()
-            println("shifting $insn")
-
-            branches.forEach { it.queue.add(insn) }
-             */
 
             return ShaderFrame(next, branches.first().frame)
         }

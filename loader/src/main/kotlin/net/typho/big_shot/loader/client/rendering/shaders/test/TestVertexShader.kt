@@ -8,9 +8,6 @@ import org.joml.Vector3fc
 import kotlin.io.path.Path
 
 class TestVertexShader : JavaShader.Vertex() {
-    //@Import
-    //val lib = TestLibrary()
-
     @Input
     @Location(0)
     @JvmField
@@ -26,20 +23,6 @@ class TestVertexShader : JavaShader.Vertex() {
     var outPos: Vector3fc = Vector3f()
 
     override fun main() {
-        val vec = Vector3f(pos)
-
-        vec.x += if (vec.x > 10f) {
-            5f
-        } else {
-            20f
-        }
+        outPos = Vector3f(pos).mulAdd(10f, Vector3f(13f, 20f, 19f))
     }
 }
-
-/*
-class TestLibrary : JavaShader.Library() {
-    fun add(a: Vector3fc, b: Vector3fc): Vector3f {
-        return a.add(b, Vector3f())
-    }
-}
- */

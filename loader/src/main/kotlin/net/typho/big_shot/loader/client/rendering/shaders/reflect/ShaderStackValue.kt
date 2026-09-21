@@ -6,7 +6,9 @@ sealed interface ShaderStackValue {
     val type: ShaderBytecodeType?
         get() = null
 
-    fun load(branch: ShaderMethodBranch): ShaderLabelNode? = null
+    fun load(branch: ShaderMethodBranch): ShaderLabelNode {
+        throw JavaShaderCompilationException("Cannot load stack value $this")
+    }
 
     data class Label(
         @JvmField

@@ -25,7 +25,7 @@ sealed interface ShaderLocal {
         override fun load(insns: MutableList<IShaderInsn>, branch: ShaderMethodBranch) = ShaderStackValue.LoadVariable(variable)
 
         override fun store(insns: MutableList<IShaderInsn>, branch: ShaderMethodBranch, value: ShaderStackValue) {
-            insns.add(ShaderInsnNode(OP_STORE, variable.label, value.load(branch)!!))
+            insns.add(ShaderInsnNode(OP_STORE, variable.label, value.load(branch)))
         }
     }
 

@@ -7,12 +7,12 @@ interface IShaderInsn {
 
     companion object {
         @JvmStatic
-        fun multi(vararg insns: IShaderInsn) = object : IShaderInsn {
+        fun multi(vararg insns: IShaderInsn?) = object : IShaderInsn {
             override fun write(
                 builder: ShaderBytecodeBuilder,
                 buffer: ExpandingByteBuffer
             ) {
-                insns.forEach { it.write(builder, buffer) }
+                insns.forEach { it?.write(builder, buffer) }
             }
         }
     }

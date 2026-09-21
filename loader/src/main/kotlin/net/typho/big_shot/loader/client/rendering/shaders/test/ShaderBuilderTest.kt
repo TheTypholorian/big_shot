@@ -34,7 +34,7 @@ object ShaderBuilderTest {
         val buffer = ShaderBytecodeUtils.glslToSpirV(testGlsl, ShaderType.VERTEX)
         val array = ByteArray(buffer.limit())
         buffer.get(0, array)
-        File("test_spirv.bin").writeBytes(array)
+        File("test_spirv.spv").writeBytes(array)
     }
 
     @JvmStatic
@@ -55,7 +55,7 @@ object ShaderBuilderTest {
 
         val array = ByteArray(buffer.limit())
         buffer.get(0, array)
-        File("test_spirv_output_java.bin").writeBytes(array)
+        File("test_spirv_output_java.spv").writeBytes(array)
 
         println(ShaderBytecodeUtils.spirVToGlsl(buffer.asIntBuffer()))
     }

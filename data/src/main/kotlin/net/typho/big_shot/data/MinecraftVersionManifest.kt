@@ -24,33 +24,38 @@ data class MinecraftVersionManifest(
         val CODEC = Codec.reflect(MinecraftVersionManifest::class.java)
         @get:JvmName("getNetworkInstance")
         val NETWORK_INSTANCE by lazy {
-            val start = System.currentTimeMillis()
+            try {
+                val start = System.currentTimeMillis()
 
-            val connection = URI.create(URL).toURL().openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
-
-            if (connection.responseCode == 404) {
-                throw RuntimeException("[Big Shot Lib] Unable to download Minecraft version manifest")
-            }
-
-            val body = connection.getInputStream().bufferedReader().use { it.readText() }
-            val manifest = JsonFormat().read(CODEC, body)
-
-            manifest.familyInfo = { family ->
-                val connection = family.url.openConnection() as HttpURLConnection
+                val connection = URI.create(URL).toURL().openConnection() as HttpURLConnection
                 connection.requestMethod = "GET"
 
                 if (connection.responseCode == 404) {
-                    throw RuntimeException("[Big Shot Lib] Unable to download Minecraft version info for ${family.primaryVersion}")
+                    throw RuntimeException("[Big Shot Lib] Unable to download Minecraft version manifest")
                 }
 
                 val body = connection.getInputStream().bufferedReader().use { it.readText() }
-                JsonFormat().read(MinecraftVersionFamily.Info.CODEC, body)
+                val manifest = JsonFormat().read(CODEC, body)
+
+                manifest.familyInfo = { family ->
+                    val connection = family.url.openConnection() as HttpURLConnection
+                    connection.requestMethod = "GET"
+
+                    if (connection.responseCode == 404) {
+                        throw RuntimeException("[Big Shot Lib] Unable to download Minecraft version info for ${family.primaryVersion}")
+                    }
+
+                    val body = connection.getInputStream().bufferedReader().use { it.readText() }
+                    JsonFormat().read(MinecraftVersionFamily.Info.CODEC, body)
+                }
+
+                println("[Big Shot Lib] Took ${System.currentTimeMillis() - start} ms to download Minecraft versions")
+
+                return@lazy manifest
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return@lazy null
             }
-
-            println("[Big Shot Lib] Took ${System.currentTimeMillis() - start} ms to download Minecraft versions")
-
-            manifest
         }
         @JvmField
         val PARCHMENT_VERSIONS = listOf(
@@ -116,8 +121,10 @@ data class MinecraftVersionManifest(
                 if (!forceDownload && cache.exists()) {
                     try {
                         info = format.read(MinecraftVersionFamily.Info.CODEC, cache.readText())
-                    } catch (_: DataReadException) {
-                    } catch (_: IOException) {
+                    } catch (e: DataReadException) {
+                        e.printStackTrace()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
                     }
                 }
 

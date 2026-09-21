@@ -9,7 +9,7 @@ class ShaderBytecodeBuilder(
     val execModel: Int
 ) {
     @JvmField
-    var labelCounter = 0
+    var labelCounter = 1
     internal val labels = mutableSetOf<ShaderLabelNode>()
     @JvmField
     val imports = linkedMapOf<String, ShaderLabelNode>()

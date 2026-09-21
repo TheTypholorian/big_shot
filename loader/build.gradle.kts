@@ -9,6 +9,7 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
+    mavenLocal()
     maven("https://repo.spongepowered.org/repository/maven-public/")
     maven("https://maven.fabricmc.net")
     maven("https://typho.net/maven")

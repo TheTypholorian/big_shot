@@ -9,6 +9,7 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
+    mavenLocal()
     gradlePluginPortal()
     maven("https://maven.fabricmc.net")
     maven("https://typho.net/maven")
