@@ -24,6 +24,8 @@ import kotlin.io.path.writeBytes
 object BigShotAgent {
     @JvmField
     val DEBUG_PATH = Paths.get(".big_shot_debug")
+    @JvmField
+    val API_PATH = Files.createTempDirectory("big_shot_agent").resolve("api.jar")
 
     @JvmStatic
     fun debugSaveClass(
@@ -40,13 +42,12 @@ object BigShotAgent {
     fun premain(args: String?, inst: Instrumentation) {
         DEBUG_PATH.deleteRecursively()
 
-        val loaderPath = Files.createTempDirectory("big_shot_agent").resolve("loader.jar")
-        loaderPath.outputStream().use { output ->
-            javaClass.classLoader.getResourceAsStream("loader.jar").use { input ->
+        API_PATH.outputStream().use { output ->
+            javaClass.classLoader.getResourceAsStream("api.jar").use { input ->
                 input!!.copyTo(output)
             }
         }
-        inst.appendToSystemClassLoaderSearch(JarFile(loaderPath.toFile()))
+        inst.appendToSystemClassLoaderSearch(JarFile(API_PATH.toFile()))
 
         inst.addTransformer({ loader, className, classBeingRedefined, domain, bytes ->
             try {
@@ -57,10 +58,10 @@ object BigShotAgent {
                         info.markChanged()
                         info.computeMaxStacks()
 
-                        val bigShotLoader = loader.loadClass("net.typho.big_shot.loader.BigShotLoader")
-                        bigShotLoader.getField("LOADER_PATH").set(null, loaderPath)
-                        bigShotLoader.getField("INSTRUMENTATION").set(null, inst)
-                        bigShotLoader.getMethod("onInstrumentationInit").invoke(null)
+                        val bigShotApi = loader.loadClass("net.typho.big_shot.api.BigShot")
+                        bigShotApi.getField("API_PATH").set(null, API_PATH)
+                        bigShotApi.getField("INSTRUMENTATION").set(null, inst)
+                        bigShotApi.getMethod("onInstrumentationInit").invoke(null)
 
                         MethodPointer.method()
                             .name("<clinit>")
@@ -71,7 +72,7 @@ object BigShotAgent {
                                         .findOrThrow(method.instructions),
                                     MethodInsnNode(
                                         Opcodes.INVOKESTATIC,
-                                        "net/typho/big_shot/loader/FabricHooks",
+                                        "net/typho/big_shot/api/platform/fabric/BigShotFabric",
                                         "clinit",
                                         "()V"
                                     )
@@ -92,13 +93,13 @@ object BigShotAgent {
                                             Opcodes.GETFIELD,
                                             className,
                                             "provider",
-                                            "Lnet/fabricmc/loader/impl/game/GameProvider;"
+                                            "Lnet/fabricmc/api/impl/game/GameProvider;"
                                         ))
                                         add(MethodInsnNode(
                                             Opcodes.INVOKESTATIC,
-                                            "net/typho/big_shot/loader/FabricHooks",
+                                            "net/typho/big_shot/api/platform/fabric/BigShotFabric",
                                             "loadGameProvider",
-                                            "(Lnet/fabricmc/loader/impl/game/GameProvider;)V"
+                                            "(Lnet/fabricmc/api/impl/game/GameProvider;)V"
                                         ))
                                     }
                                 )
@@ -110,7 +111,7 @@ object BigShotAgent {
                                     InsnList().apply {
                                         add(MethodInsnNode(
                                             Opcodes.INVOKESTATIC,
-                                            "net/typho/big_shot/loader/FabricHooks",
+                                            "net/typho/big_shot/api/platform/fabric/BigShotFabric",
                                             "registerMixins",
                                             "()V"
                                         ))
@@ -129,7 +130,7 @@ object BigShotAgent {
                                     InsnList().apply {
                                         add(MethodInsnNode(
                                             Opcodes.INVOKESTATIC,
-                                            "net/typho/big_shot/loader/FabricHooks",
+                                            "net/typho/big_shot/api/platform/fabric/BigShotFabric",
                                             "finishModLoading",
                                             "()V"
                                         ))
@@ -154,7 +155,7 @@ object BigShotAgent {
                                         add(InsnNode(Opcodes.DUP))
                                         add(MethodInsnNode(
                                             Opcodes.INVOKESTATIC,
-                                            "net/typho/big_shot/loader/BigShotLoader",
+                                            "net/typho/big_shot/api/BigShot",
                                             "transformMixinInfo",
                                             "(Lorg/objectweb/asm/tree/ClassNode;)V"
                                         ))
@@ -181,7 +182,7 @@ object BigShotAgent {
                                         add(VarInsnNode(Opcodes.ALOAD, 1))
                                         add(MethodInsnNode(
                                             Opcodes.INVOKESTATIC,
-                                            "net/typho/big_shot/loader/BigShotLoader",
+                                            "net/typho/big_shot/api/BigShot",
                                             "transformClassInfo",
                                             "(Lorg/objectweb/asm/tree/ClassNode;)V"
                                         ))

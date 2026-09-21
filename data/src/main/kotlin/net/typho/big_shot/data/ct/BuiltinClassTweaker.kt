@@ -9,6 +9,10 @@ import org.objectweb.asm.tree.ClassNode
 object BuiltinClassTweaker {
     @JvmField
     val INSTANCE = ClassTweaker.newInstance().apply {
+        visitAccessWidener("net/fabricmc/loader/impl/discovery/ModCandidateFinder")!!.apply {
+            visitClass(AccessWidenerVisitor.AccessType.ACCESSIBLE, false)
+        }
+
         visitAccessWidener("com/llamalad7/mixinextras/sugar/impl/SugarApplicator")!!.apply {
             visitClass(AccessWidenerVisitor.AccessType.ACCESSIBLE, false)
             visitMethod(
@@ -50,6 +54,7 @@ object BuiltinClassTweaker {
                 false
             )
         }
+
         visitAccessWidener("com/mojang/blaze3d/opengl/Uniform")!!.apply {
             visitClass(AccessWidenerVisitor.AccessType.EXTENDABLE, false)
         }

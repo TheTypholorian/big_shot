@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="27edd928-ea1a-4ed5-944a-5deb70aba538" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/kotlinc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Minecraft_Client.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Minecraft_Server.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/agent/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/agent/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/BigShotAgent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/BigShotAgent.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/src/main/kotlin/net/typho/big_shot/data/ct/BuiltinClassTweaker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/data/src/main/kotlin/net/typho/big_shot/data/ct/BuiltinClassTweaker.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradle_plugin/src/main/kotlin/net/typho/big_shot/plugin/BigShotPlugin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/gradle_plugin/src/main/kotlin/net/typho/big_shot/plugin/BigShotPlugin.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/installer/build.gradle.kts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/installer/gradle.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/installer/src/main/kotlin/net/typho/big_shot/installer/BigShotInstaller.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/api/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/api/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/BigShotLoader.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/BigShot.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/FabricHooks.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/platform/fabric/BigShotFabric.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/buffer/GpuBufferUsage.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/buffer/GpuBufferUsage.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/ShaderType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/ShaderType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/IShaderInsn.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/IShaderInsn.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/ShaderBytecodeBuilder.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/ShaderBytecodeBuilder.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/ShaderBytecodeType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/ShaderBytecodeType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/ShaderBytecodeUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/ShaderBytecodeUtils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/ShaderConstant.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/ShaderConstant.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/ShaderConstants.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/ShaderConstants.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/ShaderInsnNode.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/ShaderInsnNode.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/ShaderLabelNode.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/ShaderLabelNode.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/ShaderMethod.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/ShaderMethod.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/bytecode/ShaderVariable.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/bytecode/ShaderVariable.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/error/ShadercException.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/error/ShadercException.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/error/SpvcException.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/error/SpvcException.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShader.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/JavaShader.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShaderCompilationException.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/JavaShaderCompilationException.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/JavaShaderCompiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/JavaShaderCompiler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/JomlVectorTypeHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/JomlVectorTypeHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/KotlinIntrinsicsTypeHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/KotlinIntrinsicsTypeHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/ShaderFrame.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/ShaderFrame.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/ShaderLocal.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/ShaderLocal.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/ShaderMethodBranch.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/ShaderMethodBranch.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/ShaderMethodCompiler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/ShaderMethodCompiler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/ShaderStackValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/ShaderStackValue.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/reflect/ShaderTypeHandler.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/reflect/ShaderTypeHandler.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/test/ShaderBuilderTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/test/ShaderBuilderTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/shaders/test/TestVertexShader.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/shaders/test/TestVertexShader.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/client/rendering/ssbo/SsboUniform.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/client/rendering/ssbo/SsboUniform.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/MinecraftMixin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/MinecraftMixin.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/client/rendering/ssbo/GlCommandEncoderMixin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/client/rendering/ssbo/GlCommandEncoderMixin.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/client/rendering/ssbo/GlProgramMixin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/client/rendering/ssbo/GlProgramMixin.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/client/rendering/ssbo/UniformTypeMixin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/client/rendering/ssbo/UniformTypeMixin.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/jumps/AbstractJumpSugarApplicator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/AbstractJumpSugarApplicator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/jumps/BreakLoop.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/BreakLoop.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/jumps/BreakLoopSugarApplicator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/BreakLoopSugarApplicator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/jumps/Jump.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/Jump.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/jumps/JumpInfo.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/JumpInfo.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/jumps/JumpSugarApplicator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/JumpSugarApplicator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/kotlin/InvalidKotlinMixinException.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/kotlin/InvalidKotlinMixinException.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/kotlin/KotlinMixinFixer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/kotlin/KotlinMixinFixer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/target/SwitchInjectionPoint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/target/SwitchInjectionPoint.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/mixin/target/TypeInjectionPoint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/target/TypeInjectionPoint.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/transform/RemapEvent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/transform/RemapEvent.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/transform/TransformEvent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/transform/TransformEvent.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/transform/TransformSource.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/transform/TransformSource.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/transform/impl/BuiltinClassTweakerTransform.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/transform/impl/BuiltinClassTweakerTransform.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/transform/impl/ButIWantThatInMyMixinPackageTransform.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/transform/impl/ButIWantThatInMyMixinPackageTransform.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/transform/impl/InjectMixinUtilsTransform.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/transform/impl/InjectMixinUtilsTransform.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/transform/impl/RemapTransform.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/transform/impl/RemapTransform.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/util/EventGraph.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/util/EventGraph.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/kotlin/net/typho/big_shot/loader/util/ExpandingByteBuffer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/util/ExpandingByteBuffer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/loader/src/main/resources/big_shot.loader.mixins.json" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/resources/big_shot.mixins.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle.kts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "TheTypholorian"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/TheTypholorian/big_shot_loader.git",
+    "accountId": "6fa61df5-785b-435f-ba62-99b2f9b36e64"
+  }
+}]]></component>
+  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$" gradleHome="C:\Users\Evan\.gradle\wrapper\dists\gradle-9.6.1-bin\4ticwg1pgcbps2hj28r8so764\gradle-9.6.1" javaHome="C:\Program Files\Java\jdk-25.0.3" gradleVersion="9.6.1" />
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8
+}]]></component>
+  <component name="ProjectId" id="3JeDdwrxZniX3AYIQKLWFhbnrTN" />
+  <component name="ProjectViewState">
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "external.system.has.shared.sources": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true"
+  },
+  "keyToStringList": {
+    "dev.kikugie.stonecutter.projects": []
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-26cb7f24e5b0-intellij.indexing.shared.core-IU-253.29346.240" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="27edd928-ea1a-4ed5-944a-5deb70aba538" name="Changes" comment="" />
+      <created>1790012734102</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1790012734102</updated>
+    </task>
+    <servers />
+  </component>
+</project>

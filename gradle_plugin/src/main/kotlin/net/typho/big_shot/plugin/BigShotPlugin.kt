@@ -120,8 +120,10 @@ class BigShotPlugin : Plugin<Project> {
 
         project.dependencies.add("minecraft", "com.mojang:minecraft:${version.primaryVersion}")
 
-        for (lib in version.info.libraries) {
-            project.dependencies.add("implementation", lib.name)
+        if (project.findProperty("big_shot.transitive_minecraft_dependencies") != "false") {
+            for (lib in version.info.libraries) {
+                project.dependencies.add("implementation", lib.name)
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="GradleMigrationSettings" migrationVersion="1" />
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
@@ -22,11 +21,10 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/agent" />
+            <option value="$PROJECT_DIR$/api" />
             <option value="$PROJECT_DIR$/data" />
             <option value="$PROJECT_DIR$/decompiler" />
             <option value="$PROJECT_DIR$/gradle_plugin" />
-            <option value="$PROJECT_DIR$/installer" />
-            <option value="$PROJECT_DIR$/loader" />
             <option value="$PROJECT_DIR$/merger" />
           </set>
         </option>
