@@ -8,6 +8,7 @@ import net.typho.big_shot.agent.transform.RemapEvent
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.TransformSource
 import net.typho.big_shot.agent.transform.impl.BuiltinClassTweakerTransform
+import net.typho.big_shot.agent.transform.impl.ButIWantThatInMyMixinPackageTransform
 import net.typho.big_shot.agent.transform.impl.ClassLoadingFixTransform
 import net.typho.big_shot.agent.transform.impl.InjectMixinTransforms
 import net.typho.big_shot.agent.transform.impl.InjectMixinUtilsTransform
@@ -92,6 +93,7 @@ object BigShotAgent : ClassFileTransformer {
         TRANSFORM_EVENTS.register(
             ClassLoadingFixTransform,
             BuiltinClassTweakerTransform,
+            ButIWantThatInMyMixinPackageTransform,
             InjectMixinTransforms,
             InjectMixinUtilsTransform,
             KotlinMixinFixer,

@@ -1,17 +1,12 @@
 package net.typho.big_shot.agent.transform
 
 import com.llamalad7.mixinextras.sugar.impl.SugarApplicator
-import net.typho.big_shot.agent.mixin.jumps.BreakLoop
-import net.typho.big_shot.agent.mixin.jumps.BreakLoopSugarApplicator
-import net.typho.big_shot.agent.mixin.jumps.Jump
-import net.typho.big_shot.agent.mixin.jumps.JumpSugarApplicator
-import net.typho.big_shot.agent.mixin.target.SwitchInjectionPoint
-import net.typho.big_shot.agent.mixin.target.TypeInjectionPoint
 import net.typho.big_shot.util.event.EventGraph
 import org.spongepowered.asm.mixin.injection.InjectionPoint
 import org.spongepowered.asm.mixin.injection.struct.InjectionInfo
 import java.util.function.BiConsumer
 import java.util.function.Consumer
+import kotlin.jvm.java
 
 // TODO an event system sucks for this
 interface RegisterMixinInjectorsEvent {

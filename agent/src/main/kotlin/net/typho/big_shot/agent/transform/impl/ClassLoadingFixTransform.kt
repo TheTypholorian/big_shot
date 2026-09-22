@@ -35,15 +35,15 @@ object ClassLoadingFixTransform : TransformEvent.KnownTargets("net/fabricmc/load
         MethodPointer.method().name("isValidParentUrl").findOrThrow(info.node) { method ->
             method.instructions.insert(InsnList().apply {
                 val label = LabelNode()
-                add(VarInsnNode(Opcodes.ALOAD, 1))
+                add(VarInsnNode(Opcodes.ALOAD, 2))
                 add(MethodInsnNode(
                     Opcodes.INVOKESTATIC,
                     "net/typho/big_shot/agent/transform/impl/ClassLoadingFixTransform",
                     "test",
-                    "(Ljava/net/URL;)Z"
+                    "(Ljava/lang/String;)Z"
                 ))
                 add(JumpInsnNode(Opcodes.IFEQ, label))
-                add(InsnNode(Opcodes.ICONST_0))
+                add(InsnNode(Opcodes.ICONST_1))
                 add(InsnNode(Opcodes.IRETURN))
                 add(label)
             })
@@ -51,11 +51,19 @@ object ClassLoadingFixTransform : TransformEvent.KnownTargets("net/fabricmc/load
     }
 
     @JvmStatic
-    fun test(url: URL): Boolean {
+    fun test(fileName: String): Boolean {
+        return fileName.startsWith("net/typho/big_shot/agent")
+        /*
         return try {
-            url.toURI().toPath().startsWith(BigShotAgent.AGENT_PATH)
+            println("testing $url")
+            val path = url.toURI().toPath()
+            println("testing path $path")
+            val r = url.toURI().toPath().startsWith(BigShotAgent.AGENT_PATH)
+            println("result $r")
+            r
         } catch (e: FileSystemNotFoundException) {
             false
         }
+         */
     }
 }

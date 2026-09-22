@@ -4,9 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="27edd928-ea1a-4ed5-944a-5deb70aba538" name="Changes" comment="renamed from big shot loader to big shot cus it's no longer a mod loader">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+    <list default="true" id="27edd928-ea1a-4ed5-944a-5deb70aba538" name="Changes" comment="re-added .idea gitignore">
+      <change afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/ButIWantThatInMyMixinPackageTransform.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/BigShotAgent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/BigShotAgent.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/mixin/jumps/AbstractJumpSugarApplicator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/AbstractJumpSugarApplicator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/mixin/jumps/BreakLoop.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/BreakLoop.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/mixin/jumps/BreakLoopSugarApplicator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/BreakLoopSugarApplicator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/mixin/jumps/Jump.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/Jump.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/mixin/jumps/JumpInfo.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/JumpInfo.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/mixin/jumps/JumpSugarApplicator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/jumps/JumpSugarApplicator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/mixin/target/SwitchInjectionPoint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/target/SwitchInjectionPoint.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/mixin/target/TypeInjectionPoint.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/target/TypeInjectionPoint.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/platform/fabric/BigShotFabric.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/platform/fabric/BigShotFabric.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/RegisterMixinInjectorsEvent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/RegisterMixinInjectorsEvent.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/ClassLoadingFixTransform.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/ClassLoadingFixTransform.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/client/rendering/ssbo/GlCommandEncoderMixin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/client/rendering/ssbo/GlCommandEncoderMixin.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/client/rendering/ssbo/GlProgramMixin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/client/rendering/ssbo/GlProgramMixin.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,33 +43,7 @@
             <expand>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="big_shot_loader" type="f1a62948:ProjectNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="big_shot_loader" type="f1a62948:ProjectNode" />
-                <item name="big_shot_loader" type="2d1252cf:ModuleNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="big_shot_loader" type="f1a62948:ProjectNode" />
-                <item name="big_shot_loader" type="2d1252cf:ModuleNode" />
-                <item name="agent" type="2d1252cf:ModuleNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="big_shot_loader" type="f1a62948:ProjectNode" />
-                <item name="big_shot_loader" type="2d1252cf:ModuleNode" />
-                <item name="agent" type="2d1252cf:ModuleNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="big_shot_loader" type="f1a62948:ProjectNode" />
-                <item name="big_shot_loader" type="2d1252cf:ModuleNode" />
-                <item name="agent" type="2d1252cf:ModuleNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-                <item name="build" type="c8890929:TasksNode$1" />
+                <item name="big_shot" type="f1a62948:ProjectNode" />
               </path>
             </expand>
             <select />
@@ -104,6 +92,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "external.system.has.shared.sources": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
@@ -215,7 +204,15 @@
       <option name="project" value="LOCAL" />
       <updated>1790012825814</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="re-added .idea gitignore">
+      <option name="closed" value="true" />
+      <created>1790036850654</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1790036850654</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -231,6 +228,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="renamed from big shot loader to big shot cus it's no longer a mod loader" />
-    <option name="LAST_COMMIT_MESSAGE" value="renamed from big shot loader to big shot cus it's no longer a mod loader" />
+    <MESSAGE value="re-added .idea gitignore" />
+    <option name="LAST_COMMIT_MESSAGE" value="re-added .idea gitignore" />
   </component>
 </project>

@@ -1,4 +1,4 @@
-package net.typho.big_shot.agent.mixin.jumps
+package net.typho.big_shot.api.mixin.jumps
 
 import com.llamalad7.mixinextras.injector.StackExtension
 import com.llamalad7.mixinextras.sugar.impl.SugarApplicator

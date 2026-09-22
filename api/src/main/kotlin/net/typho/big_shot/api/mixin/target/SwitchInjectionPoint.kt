@@ -1,20 +1,19 @@
-package net.typho.big_shot.agent.mixin.target
+package net.typho.big_shot.api.mixin.target
 
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.InsnList
-import org.objectweb.asm.tree.TypeInsnNode
+import org.objectweb.asm.tree.LookupSwitchInsnNode
+import org.objectweb.asm.tree.TableSwitchInsnNode
 import org.spongepowered.asm.mixin.injection.InjectionPoint
 import org.spongepowered.asm.mixin.injection.struct.InjectionPointData
 
-@InjectionPoint.AtCode(namespace = "BIG_SHOT", value = "TYPE")
-class TypeInjectionPoint(
+@InjectionPoint.AtCode(namespace = "BIG_SHOT", value = "SWITCH")
+class SwitchInjectionPoint(
     data: InjectionPointData
 ) : InjectionPoint(data) {
     @JvmField
-    val desc = data.get("target", "")
-    @JvmField
-    val opcode = data.getOpcode(-1, Opcodes.NEW, Opcodes.ANEWARRAY, Opcodes.CHECKCAST, Opcodes.INSTANCEOF)
+    val opcode = data.getOpcode(-1, Opcodes.LOOKUPSWITCH, Opcodes.TABLESWITCH)
     @JvmField
     val ordinal = data.ordinal
 
@@ -27,7 +26,7 @@ class TypeInjectionPoint(
         var ordinal = 0
 
         for (insn in insns) {
-            if (insn is TypeInsnNode && (opcode == -1 || insn.opcode == opcode) && (this.desc.isEmpty() || insn.desc == this.desc)) {
+            if ((insn is TableSwitchInsnNode || insn is LookupSwitchInsnNode) && (opcode == -1 || insn.opcode == opcode)) {
                 if (this.ordinal == -1 || this.ordinal == ordinal) {
                     nodes.add(insn)
                     found = true

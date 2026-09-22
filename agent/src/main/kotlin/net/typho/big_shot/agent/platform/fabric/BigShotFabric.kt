@@ -2,6 +2,7 @@ package net.typho.big_shot.agent.platform.fabric
 
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder
 import net.fabricmc.loader.impl.game.GameProvider
+import net.fabricmc.loader.impl.launch.FabricLauncherBase
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
