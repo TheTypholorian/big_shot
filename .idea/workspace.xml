@@ -4,15 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="27edd928-ea1a-4ed5-944a-5deb70aba538" name="Changes" comment="re-added .idea gitignore">
-      <change afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/BigShotMixinUtils.kt" afterDir="false" />
+    <list default="true" id="27edd928-ea1a-4ed5-944a-5deb70aba538" name="Changes" comment="mixin utils have successfully been moved to api">
+      <change afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/Log.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/platform/fabric/FabricLogImpl.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/BigShotAgent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/BigShotAgent.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/RegisterMixinInjectorsEvent.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/ClassLoadingFixTransform.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/ClassLoadingFixTransform.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/InjectMixinUtilsTransform.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/InjectMixinUtilsTransform.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/MinecraftMixin.kt" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/kotlin/net/typho/big_shot/api/mixin/MinecraftMixin.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util/src/main/kotlin/net/typho/big_shot/util/ct/BuiltinClassTweaker.kt" beforeDir="false" afterPath="$PROJECT_DIR$/util/src/main/kotlin/net/typho/big_shot/util/ct/BuiltinClassTweaker.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/platform/fabric/BigShotFabric.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/platform/fabric/BigShotFabric.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/KotlinMixinFixer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/KotlinMixinFixer.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/src/main/resources/fabric.mod.json" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/resources/fabric.mod.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,6 +52,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Kotlin Class" />
+        <option value="Kotlin Interface" />
         <option value="Kotlin Object" />
       </list>
     </option>
@@ -210,7 +210,15 @@
       <option name="project" value="LOCAL" />
       <updated>1790036850654</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="mixin utils have successfully been moved to api">
+      <option name="closed" value="true" />
+      <created>1790089932041</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1790089932041</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -227,6 +235,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="renamed from big shot loader to big shot cus it's no longer a mod loader" />
     <MESSAGE value="re-added .idea gitignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="re-added .idea gitignore" />
+    <MESSAGE value="mixin utils have successfully been moved to api" />
+    <option name="LAST_COMMIT_MESSAGE" value="mixin utils have successfully been moved to api" />
   </component>
 </project>

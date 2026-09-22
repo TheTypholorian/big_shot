@@ -76,7 +76,7 @@ object BigShotAgent : ClassFileTransformer {
 
             return info.compile(::debugSaveClass)
         } catch (t: Throwable) {
-            ClassVisitException("Error transforming class $className\nTransform event graph:\n$TRANSFORM_EVENTS", t).printStackTrace()
+            Log.error("Error transforming class $className\nTransform event graph:\n$TRANSFORM_EVENTS", t)
 
             return null
         }
@@ -85,7 +85,7 @@ object BigShotAgent : ClassFileTransformer {
     @OptIn(ExperimentalPathApi::class)
     @JvmStatic
     fun premain(args: String?, inst: Instrumentation) {
-        println("Loading big shot agent from $AGENT_PATH")
+        Log.info("Loading big shot agent from $AGENT_PATH")
 
         INSTRUMENTATION = inst
 

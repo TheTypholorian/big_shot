@@ -2,11 +2,12 @@ package net.typho.big_shot.agent.platform.fabric
 
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder
 import net.fabricmc.loader.impl.game.GameProvider
-import net.fabricmc.loader.impl.launch.FabricLauncherBase
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.big_shot.agent.BigShotAgent
+import net.typho.big_shot.agent.LOG_INSTANCE
+import net.typho.big_shot.agent.Log
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.TransformSource
 import net.typho.big_shot.util.event.EventGraph
@@ -16,7 +17,6 @@ import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.InsnList
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
-import org.spongepowered.asm.mixin.Mixins
 
 @ApiStatus.Internal
 @Suppress("unused")
@@ -154,17 +154,18 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
 
     @JvmStatic
     fun clinit() {
-        println("loaded into a bright future with mucho shenanigans to come")
+        LOG_INSTANCE = FabricLogImpl
+        Log.info("Loading big shot on fabric")
     }
 
     @JvmStatic
     fun loadGameProvider(provider: GameProvider) {
-        println("game provider $provider, name ${provider.gameName} and version ${provider.rawGameVersion}")
+        Log.info("game provider $provider, name ${provider.gameName} and version ${provider.rawGameVersion}")
     }
 
     @JvmStatic
     fun registerMixins() {
-        println("registering mixins")
+        Log.info("registering mixins")
         //Mixins.addConfiguration("big_shot.mixins.json")
     }
 

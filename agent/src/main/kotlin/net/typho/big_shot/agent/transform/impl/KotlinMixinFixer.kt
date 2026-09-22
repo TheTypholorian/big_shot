@@ -6,6 +6,7 @@ import net.typho.asm_util.KotlinUtil.kotlinMetadata
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
+import net.typho.big_shot.agent.Log
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.TransformSource
 import net.typho.big_shot.util.event.EventGraph
@@ -49,7 +50,7 @@ object KotlinMixinFixer : EventGraph.SelfAware<String>, TransformEvent {
         var changed = false
 
         if (metadata !is KotlinClassMetadata.Class) {
-            System.err.println("Kotlin mixin ${node.name} must be a normal class for Big Shot to tweak it, got a ${metadata.javaClass.name}. No action will be taken, if there are problems with the mixin, this is likely a cause.")
+            Log.warn("Kotlin mixin ${node.name} must be a normal class for Big Shot to tweak it, got a ${metadata.javaClass.name}. No action will be taken, if there are problems with the mixin, this is likely a cause.")
             return false
         }
 
