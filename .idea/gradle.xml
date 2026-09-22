@@ -8,8 +8,8 @@
             <builds>
               <build path="$PROJECT_DIR$/gradle_plugin" name="gradle_plugin">
                 <projects>
-                  <project path="$PROJECT_DIR$/data" />
                   <project path="$PROJECT_DIR$/gradle_plugin" />
+                  <project path="$PROJECT_DIR$/util" />
                 </projects>
               </build>
             </builds>
@@ -22,10 +22,10 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/agent" />
             <option value="$PROJECT_DIR$/api" />
-            <option value="$PROJECT_DIR$/data" />
             <option value="$PROJECT_DIR$/decompiler" />
             <option value="$PROJECT_DIR$/gradle_plugin" />
             <option value="$PROJECT_DIR$/merger" />
+            <option value="$PROJECT_DIR$/util" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="true" />

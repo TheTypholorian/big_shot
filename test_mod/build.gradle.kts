@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":loader")) // TODO
+    implementation(project(":api")) // TODO
 }
 
 kotlin {

@@ -30,7 +30,7 @@ dependencies {
     implementation("org.apache.maven.resolver:maven-resolver-supplier-mvn3:2.0.21")
 
     implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}")
-    implementation(project(":data")) // TODO
+    implementation(project(":util")) // TODO
     implementation("net.fabricmc:class-tweaker:0.3.0")
 }
 

@@ -1,11 +1,6 @@
 package net.typho.big_shot.api.client.rendering.shaders.reflect
 
-import net.typho.big_shot.api.client.rendering.shaders.bytecode.IShaderInsn
-import net.typho.big_shot.api.client.rendering.shaders.bytecode.OP_STORE
-import net.typho.big_shot.api.client.rendering.shaders.bytecode.ShaderBytecodeType
-import net.typho.big_shot.api.client.rendering.shaders.bytecode.ShaderInsnNode
-import net.typho.big_shot.api.client.rendering.shaders.bytecode.ShaderLabelNode
-import net.typho.big_shot.api.client.rendering.shaders.bytecode.ShaderVariable
+import net.typho.big_shot.api.client.rendering.shaders.bytecode.*
 
 sealed interface ShaderLocal {
     val type: ShaderBytecodeType?

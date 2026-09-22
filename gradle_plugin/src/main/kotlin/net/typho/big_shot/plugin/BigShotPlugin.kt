@@ -16,7 +16,6 @@ import java.net.URI
 import java.nio.file.Files
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writer
-import kotlin.jvm.java
 
 class BigShotPlugin : Plugin<Project> {
     companion object {

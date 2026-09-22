@@ -9,8 +9,8 @@ import com.mojang.blaze3d.pipeline.BindGroupLayout
 import com.mojang.blaze3d.shaders.UniformType
 import net.typho.big_shot.api.client.rendering.buffer.GpuBufferUsage
 import net.typho.big_shot.api.client.rendering.ssbo.SsboUniform
-import net.typho.big_shot.api.mixin.jumps.Jump
-import net.typho.big_shot.api.mixin.jumps.JumpInfo
+import net.typho.big_shot.agent.mixin.jumps.Jump
+import net.typho.big_shot.agent.mixin.jumps.JumpInfo
 import org.lwjgl.opengl.GL30.glBindBufferRange
 import org.lwjgl.opengl.GL43.GL_SHADER_STORAGE_BUFFER
 import org.objectweb.asm.Opcodes

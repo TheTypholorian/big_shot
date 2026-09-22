@@ -18,10 +18,10 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:9.10.1")
     implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}")
     implementation("net.typho:data_util:${rootProject.property("versions.data_util")}")
-    implementation(project(":data")) // TODO
+    implementation(project(":util")) // TODO
     implementation(kotlin("reflect"))
 }
 
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(25)
 }

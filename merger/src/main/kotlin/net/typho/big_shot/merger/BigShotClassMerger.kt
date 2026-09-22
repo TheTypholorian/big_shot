@@ -1,8 +1,8 @@
 package net.typho.big_shot.merger
 
-import net.typho.big_shot.data.Dist
-import net.typho.big_shot.data.env.Environment
-import net.typho.big_shot.data.env.EnvironmentRestriction
+import net.typho.big_shot.util.Dist
+import net.typho.big_shot.util.env.Environment
+import net.typho.big_shot.util.env.EnvironmentRestriction
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.AnnotationNode

@@ -1,6 +1,7 @@
 package net.typho.big_shot.api.client.rendering.shaders
 
-import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER
+import org.lwjgl.opengl.GL20.GL_VERTEX_SHADER
 import org.lwjgl.opengl.GL43.*
 import org.lwjgl.util.shaderc.Shaderc.*
 import org.lwjgl.vulkan.VK10.*

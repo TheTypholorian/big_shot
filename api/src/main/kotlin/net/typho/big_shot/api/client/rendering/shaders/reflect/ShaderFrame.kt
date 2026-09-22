@@ -5,7 +5,6 @@ import net.typho.big_shot.api.client.rendering.shaders.bytecode.ShaderLabelNode
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.VarInsnNode
-import kotlin.to
 
 class ShaderFrame(
     @JvmField

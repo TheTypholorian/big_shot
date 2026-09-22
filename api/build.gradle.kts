@@ -18,28 +18,33 @@ repositories {
 val jij = configurations.create("jij")
 
 dependencies {
-    extraAccessWiden("net.fabricmc:fabric-loader:0.19.3") // TODO
+    extraAccessWiden("net.fabricmc:fabric-loader:0.19.5") {
+        isTransitive = false
+    } // TODO
 
     jij(kotlin("stdlib"))
     jij(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")!!)
+    compileOnly("org.spongepowered:mixin:0.8.5")
 
     implementation("org.ow2.asm:asm:9.10.1")
     implementation("org.ow2.asm:asm-tree:9.10.1")
     implementation("org.ow2.asm:asm-util:9.10.1")
     implementation("org.ow2.asm:asm-commons:9.10.1")
     compileOnly("org.jetbrains:annotations:26.0.2")
-    compileOnly("org.spongepowered:mixin:0.8.5")
     compileOnly("org.apache.commons:commons-lang3:3.20.0")
     extraAccessWiden("io.github.llamalad7:mixinextras-fabric:0.5.5")
     jij(implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {
         isTransitive = false
     })
-    jij(implementation(project(":data")) { // TODO
+    jij(implementation(project(":util")) { // TODO
         isTransitive = false
     })
     jij(implementation("net.fabricmc:class-tweaker:0.3.0") {
         isTransitive = false
     })
+    compileOnly(project(":agent")) {
+        isTransitive = false
+    }
 }
 
 kotlin {
@@ -50,6 +55,4 @@ tasks.shadowJar {
     archiveVersion.set("")
     archiveClassifier.set("")
     configurations = listOf(jij)
-    destinationDirectory.set(project(":agent").file("src/main/resources"))
-    //dependsOn(project(":test_mod").tasks.jar)
 }

@@ -4,7 +4,9 @@ import net.typho.asm_util.ASMUtil.mapIterator
 import net.typho.asm_util.method.MethodPointer
 import net.typho.big_shot.api.client.rendering.shaders.bytecode.*
 import org.objectweb.asm.Type
-import org.objectweb.asm.tree.*
+import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.FieldNode
+import org.objectweb.asm.tree.MethodNode
 import java.nio.ByteBuffer
 
 class JavaShaderCompiler(

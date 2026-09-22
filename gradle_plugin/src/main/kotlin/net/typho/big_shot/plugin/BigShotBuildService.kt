@@ -1,6 +1,6 @@
 package net.typho.big_shot.plugin
 
-import net.typho.big_shot.data.MinecraftVersionManifest
+import net.typho.big_shot.util.MinecraftVersionManifest
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters

@@ -1,13 +1,11 @@
 package net.typho.big_shot.decompiler
 
-import net.typho.asm_util.method.MethodPointer.Companion.method
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
 import java.io.File
-import javax.management.Query.and
 
 open class BigShotDecompiler(
     @JvmField

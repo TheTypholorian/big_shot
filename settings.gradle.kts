@@ -11,7 +11,7 @@ pluginManagement {
 }
 
 include("agent")
-include("data")
+include("util")
 include("decompiler")
 includeBuild("gradle_plugin")
 include("api")

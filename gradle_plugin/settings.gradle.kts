@@ -10,4 +10,4 @@ pluginManagement {
     }
 }
 
-includeFlat("data")
+includeFlat("util")

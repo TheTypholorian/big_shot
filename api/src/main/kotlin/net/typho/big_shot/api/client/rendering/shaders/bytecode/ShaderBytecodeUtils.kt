@@ -11,7 +11,6 @@ import java.nio.IntBuffer
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import kotlin.use
 
 object ShaderBytecodeUtils {
     @JvmStatic
