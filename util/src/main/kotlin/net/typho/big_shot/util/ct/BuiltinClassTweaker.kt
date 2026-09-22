@@ -45,11 +45,25 @@ object BuiltinClassTweaker {
                 AccessWidenerVisitor.AccessType.ACCESSIBLE,
                 false
             )
+            visitField(
+                "MAP",
+                "Ljava/util/Map;",
+                AccessWidenerVisitor.AccessType.ACCESSIBLE,
+                false
+            )
         }
         visitAccessWidener("com/llamalad7/mixinextras/sugar/impl/SugarPostProcessingExtension")!!.apply {
             visitMethod(
                 "enqueuePostProcessing",
                 "(Lcom/llamalad7/mixinextras/sugar/impl/SugarApplicator;Ljava/lang/Runnable;)V",
+                AccessWidenerVisitor.AccessType.ACCESSIBLE,
+                false
+            )
+        }
+        visitAccessWidener("com/llamalad7/mixinextras/service/MixinExtrasService")!!.apply {
+            visitMethod(
+                "getInstance",
+                "()Lcom/llamalad7/mixinextras/service/MixinExtrasService;",
                 AccessWidenerVisitor.AccessType.ACCESSIBLE,
                 false
             )

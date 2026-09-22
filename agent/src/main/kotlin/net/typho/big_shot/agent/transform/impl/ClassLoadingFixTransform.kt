@@ -52,7 +52,7 @@ object ClassLoadingFixTransform : TransformEvent.KnownTargets("net/fabricmc/load
 
     @JvmStatic
     fun test(fileName: String): Boolean {
-        return fileName.startsWith("net/typho/big_shot/agent")
+        return fileName.startsWith("net/typho/big_shot/agent") // TODO
         /*
         return try {
             println("testing $url")

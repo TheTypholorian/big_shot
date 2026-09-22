@@ -3,7 +3,6 @@ package net.typho.big_shot.agent
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.error.ClassVisitException
 import net.typho.big_shot.agent.platform.fabric.BigShotFabric
-import net.typho.big_shot.agent.transform.RegisterMixinInjectorsEvent
 import net.typho.big_shot.agent.transform.RemapEvent
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.TransformSource
@@ -38,8 +37,6 @@ object BigShotAgent : ClassFileTransformer {
     val TRANSFORM_EVENTS = EventGraph<String, TransformEvent>()
     @JvmField
     val REMAP_EVENTS = EventGraph<String, RemapEvent>()
-    @JvmField
-    val REGISTER_MIXIN_INJECTORS_EVENTS = EventGraph<String, RegisterMixinInjectorsEvent>()
 
     @JvmStatic
     fun debugSaveClass(
@@ -68,6 +65,8 @@ object BigShotAgent : ClassFileTransformer {
         bytes: ByteArray
     ): ByteArray? {
         try {
+            //println("Transforming loader ${loader?.name}, class $className")
+
             val info = ClassTransformInfo.ByteTransform(bytes)
 
             TRANSFORM_EVENTS.execute { id, event ->
@@ -100,7 +99,6 @@ object BigShotAgent : ClassFileTransformer {
             RemapTransform,
             BigShotFabric
         )
-        REGISTER_MIXIN_INJECTORS_EVENTS.register(RegisterMixinInjectorsEvent.Builtin)
 
         DEBUG_PATH.deleteRecursively()
 
