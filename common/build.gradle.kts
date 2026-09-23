@@ -18,6 +18,7 @@ dependencies {
     implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}")
     implementation("net.typho:data_util:${rootProject.property("versions.data_util")}")
     implementation("org.semver4j:semver4j:6.0.0")
+    implementation(kotlin("reflect"))
     compileOnly("net.fabricmc:class-tweaker:0.3.0")
 }
 

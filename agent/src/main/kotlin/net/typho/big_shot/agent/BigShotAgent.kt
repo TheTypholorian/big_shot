@@ -1,18 +1,11 @@
 package net.typho.big_shot.agent
 
 import net.typho.asm_util.ClassTransformInfo
-import net.typho.asm_util.error.ClassVisitException
 import net.typho.big_shot.agent.platform.fabric.BigShotFabric
 import net.typho.big_shot.agent.transform.RemapEvent
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.TransformSource
-import net.typho.big_shot.agent.transform.impl.BuiltinClassTweakerTransform
-import net.typho.big_shot.agent.transform.impl.ButIWantThatInMyMixinPackageTransform
-import net.typho.big_shot.agent.transform.impl.ClassLoadingFixTransform
-import net.typho.big_shot.agent.transform.impl.InjectMixinTransforms
-import net.typho.big_shot.agent.transform.impl.InjectMixinUtilsTransform
-import net.typho.big_shot.agent.transform.impl.KotlinMixinFixer
-import net.typho.big_shot.agent.transform.impl.RemapTransform
+import net.typho.big_shot.agent.transform.impl.*
 import net.typho.big_shot.common.event.EventGraph
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.*

@@ -42,6 +42,7 @@ dependencies {
     jij(implementation("net.fabricmc:class-tweaker:0.3.0") {
         isTransitive = false
     })
+    jij(implementation(kotlin("reflect"))!!)
     compileOnly(project(":agent")) {
         isTransitive = false
     }
