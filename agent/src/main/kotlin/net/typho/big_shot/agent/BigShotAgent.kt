@@ -24,6 +24,9 @@ import java.security.ProtectionDomain
 import kotlin.io.path.*
 
 object BigShotAgent : ClassFileTransformer {
+    var LOADED = false
+        private set
+
     @JvmField
     val DEBUG_PATH = Paths.get(".big_shot_debug")
     @JvmField
@@ -65,8 +68,6 @@ object BigShotAgent : ClassFileTransformer {
         bytes: ByteArray
     ): ByteArray? {
         try {
-            //println("Transforming loader ${loader?.name}, class $className")
-
             val info = ClassTransformInfo.ByteTransform(bytes)
 
             TRANSFORM_EVENTS.execute { id, event ->
@@ -85,6 +86,7 @@ object BigShotAgent : ClassFileTransformer {
     @OptIn(ExperimentalPathApi::class)
     @JvmStatic
     fun premain(args: String?, inst: Instrumentation) {
+        LOADED = true
         Log.info("Loading big shot agent from $AGENT_PATH")
 
         INSTRUMENTATION = inst

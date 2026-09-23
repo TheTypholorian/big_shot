@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "big_shot_agent_check",
+  "version": "1.0.0",
+  "entrypoints": {
+    "preLaunch": [
+      "net.typho.big_shot.agent.platform.fabric.FabricPreLaunch"
+    ]
+  }
+}
