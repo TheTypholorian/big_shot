@@ -1,4 +1,4 @@
-package net.typho.big_shot.util
+package net.typho.big_shot.common
 
 import net.typho.data_util.anno.InlineCodec
 import net.typho.data_util.codec.Codec

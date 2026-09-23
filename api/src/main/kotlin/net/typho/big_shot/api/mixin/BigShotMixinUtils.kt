@@ -11,6 +11,7 @@ import net.typho.big_shot.api.mixin.target.TypeInjectionPoint
 import org.jetbrains.annotations.ApiStatus
 import org.spongepowered.asm.mixin.injection.InjectionPoint
 
+@Suppress("unused")
 object BigShotMixinUtils {
     @JvmStatic
     fun registerSugar(anno: Class<out Annotation>, applicator: Class<out SugarApplicator>) {
@@ -19,12 +20,10 @@ object BigShotMixinUtils {
         }
     }
 
-    @Suppress("unused")
     @ApiStatus.Internal
     @JvmStatic
     fun register() {
         println("Registering big shot mixin utils")
-        println(SugarApplicator.MAP)
 
         registerSugar(BreakLoop::class.java, BreakLoopSugarApplicator::class.java)
         registerSugar(Jump::class.java, JumpSugarApplicator::class.java)

@@ -1,4 +1,4 @@
-package net.typho.big_shot.util.ct
+package net.typho.big_shot.common.ct
 
 import net.fabricmc.classtweaker.api.ClassTweaker
 import net.fabricmc.classtweaker.api.visitor.AccessWidenerVisitor

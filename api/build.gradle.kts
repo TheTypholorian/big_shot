@@ -36,7 +36,7 @@ dependencies {
     jij(implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {
         isTransitive = false
     })
-    jij(implementation(project(":util")) { // TODO
+    jij(implementation(project(":common")) { // TODO
         isTransitive = false
     })
     jij(implementation("net.fabricmc:class-tweaker:0.3.0") {

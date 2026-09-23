@@ -1,4 +1,4 @@
-package net.typho.big_shot.util.env
+package net.typho.big_shot.common.env
 
 /**
  * Specifies an environment restriction to a file, class, field, or method.

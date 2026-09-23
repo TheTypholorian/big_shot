@@ -5,7 +5,7 @@ import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.TransformSource
-import net.typho.big_shot.util.event.EventGraph
+import net.typho.big_shot.common.event.EventGraph
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.InsnList
 import org.objectweb.asm.tree.JumpInsnNode

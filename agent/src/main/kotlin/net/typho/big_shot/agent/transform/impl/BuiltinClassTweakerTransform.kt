@@ -3,8 +3,8 @@ package net.typho.big_shot.agent.transform.impl
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.TransformSource
-import net.typho.big_shot.util.ct.BuiltinClassTweaker
-import net.typho.big_shot.util.event.EventGraph
+import net.typho.big_shot.common.ct.BuiltinClassTweaker
+import net.typho.big_shot.common.event.EventGraph
 
 object BuiltinClassTweakerTransform : EventGraph.SelfAware<String>, TransformEvent {
     override val id: String

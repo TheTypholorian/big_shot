@@ -33,7 +33,7 @@ dependencies {
     jij(implementation("net.fabricmc:class-tweaker:0.3.0") {
         isTransitive = false
     })
-    jij(implementation(project(":util")) {
+    jij(implementation(project(":common")) {
         isTransitive = false
     })
     jij(implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {

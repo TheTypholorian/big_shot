@@ -1,4 +1,4 @@
-package net.typho.big_shot.util.event
+package net.typho.big_shot.common.event
 
 import java.util.function.BiConsumer
 import java.util.function.Consumer

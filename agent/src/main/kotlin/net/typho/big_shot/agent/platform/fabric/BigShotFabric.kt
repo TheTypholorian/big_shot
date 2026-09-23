@@ -11,7 +11,7 @@ import net.typho.big_shot.agent.LOG_INSTANCE
 import net.typho.big_shot.agent.Log
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.TransformSource
-import net.typho.big_shot.util.event.EventGraph
+import net.typho.big_shot.common.event.EventGraph
 import org.jetbrains.annotations.ApiStatus
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.FieldInsnNode

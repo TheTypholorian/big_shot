@@ -1,4 +1,4 @@
-package net.typho.big_shot.util
+package net.typho.big_shot.common
 
 import net.typho.data_util.DataReadException
 import net.typho.data_util.codec.Codec
@@ -8,6 +8,7 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URI
 import java.time.Instant
+import kotlin.collections.iterator
 
 data class MinecraftVersionManifest(
     @JvmField

@@ -13,7 +13,7 @@ import net.typho.big_shot.agent.transform.impl.InjectMixinTransforms
 import net.typho.big_shot.agent.transform.impl.InjectMixinUtilsTransform
 import net.typho.big_shot.agent.transform.impl.KotlinMixinFixer
 import net.typho.big_shot.agent.transform.impl.RemapTransform
-import net.typho.big_shot.util.event.EventGraph
+import net.typho.big_shot.common.event.EventGraph
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.*
 import java.lang.instrument.ClassFileTransformer

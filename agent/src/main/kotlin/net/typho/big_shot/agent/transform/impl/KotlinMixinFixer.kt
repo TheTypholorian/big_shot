@@ -9,8 +9,8 @@ import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.agent.Log
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.TransformSource
-import net.typho.big_shot.util.event.EventGraph
-import net.typho.big_shot.util.mixin.kotlin.InvalidKotlinMixinException
+import net.typho.big_shot.common.event.EventGraph
+import net.typho.big_shot.common.mixin.kotlin.InvalidKotlinMixinException
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes

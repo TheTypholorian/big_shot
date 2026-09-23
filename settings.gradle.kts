@@ -11,9 +11,9 @@ pluginManagement {
 }
 
 include("agent")
-include("util")
+include("api")
+include("common")
 include("decompiler")
 includeBuild("gradle_plugin")
-include("api")
 include("merger")
 //include("test_mod")

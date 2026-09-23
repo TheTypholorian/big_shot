@@ -2,7 +2,7 @@ package net.typho.big_shot.agent.transform
 
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.big_shot.agent.BigShotAgent
-import net.typho.big_shot.util.event.EventGraph
+import net.typho.big_shot.common.event.EventGraph
 
 fun interface TransformEvent {
     fun transform(
