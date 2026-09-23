@@ -4,7 +4,7 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [],
   "client": [
-    "MinecraftMixin",
+    "client.SplashManagerMixin",
     "client.rendering.ssbo.GlCommandEncoderMixin",
     "client.rendering.ssbo.GlProgramMixin",
     "client.rendering.ssbo.UniformTypeMixin"
