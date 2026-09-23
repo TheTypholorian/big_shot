@@ -4,14 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="27edd928-ea1a-4ed5-944a-5deb70aba538" name="Changes" comment="mixin utils have successfully been moved to api">
-      <change afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/Log.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/platform/fabric/FabricLogImpl.kt" afterDir="false" />
+    <list default="true" id="27edd928-ea1a-4ed5-944a-5deb70aba538" name="Changes" comment="we have logging now yippee">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/BigShotAgent.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/BigShotAgent.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/platform/fabric/BigShotFabric.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/platform/fabric/BigShotFabric.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/KotlinMixinFixer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/agent/src/main/kotlin/net/typho/big_shot/agent/transform/impl/KotlinMixinFixer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/src/main/resources/fabric.mod.json" beforeDir="false" afterPath="$PROJECT_DIR$/api/src/main/resources/fabric.mod.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -218,7 +213,15 @@
       <option name="project" value="LOCAL" />
       <updated>1790089932041</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="we have logging now yippee">
+      <option name="closed" value="true" />
+      <created>1790103914062</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1790103914062</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -236,6 +239,7 @@
     <MESSAGE value="renamed from big shot loader to big shot cus it's no longer a mod loader" />
     <MESSAGE value="re-added .idea gitignore" />
     <MESSAGE value="mixin utils have successfully been moved to api" />
-    <option name="LAST_COMMIT_MESSAGE" value="mixin utils have successfully been moved to api" />
+    <MESSAGE value="we have logging now yippee" />
+    <option name="LAST_COMMIT_MESSAGE" value="we have logging now yippee" />
   </component>
 </project>

@@ -1,7 +1,8 @@
 package net.typho.big_shot.agent.platform.fabric
 
+import net.fabricmc.loader.api.FabricLoader
+import net.fabricmc.loader.api.metadata.ModOrigin
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder
-import net.fabricmc.loader.impl.game.GameProvider
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
@@ -17,6 +18,9 @@ import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.InsnList
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
+import java.net.URI
+import java.nio.file.Path
+import kotlin.io.path.exists
 
 @ApiStatus.Internal
 @Suppress("unused")
@@ -43,55 +47,9 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
                             MethodInsnNode(
                                 Opcodes.INVOKESTATIC,
                                 "net/typho/big_shot/agent/platform/fabric/BigShotFabric",
-                                "clinit",
+                                "init",
                                 "()V"
                             )
-                        )
-                    }
-                MethodPointer.method()
-                    .name("init")
-                    .desc("([Ljava/lang/String;)Ljava/lang/ClassLoader;")
-                    .findOrThrow(info.node) { method ->
-                        method.instructions.insert(
-                            InsnPointer.fieldSet()
-                                .owner(info.className)
-                                .name("provider")
-                                .findOrThrow(method.instructions),
-                            InsnList().apply {
-                                add(VarInsnNode(Opcodes.ALOAD, 0))
-                                add(
-                                    FieldInsnNode(
-                                        Opcodes.GETFIELD,
-                                        info.className,
-                                        "provider",
-                                        "Lnet/fabricmc/loader/impl/game/GameProvider;"
-                                    )
-                                )
-                                add(
-                                    MethodInsnNode(
-                                        Opcodes.INVOKESTATIC,
-                                        "net/typho/big_shot/agent/platform/fabric/BigShotFabric",
-                                        "loadGameProvider",
-                                        "(Lnet/fabricmc/loader/impl/game/GameProvider;)V"
-                                    )
-                                )
-                            }
-                        )
-                        method.instructions.insert(
-                            InsnPointer.methodCallStatic()
-                                .owner("net/fabricmc/loader/impl/launch/FabricLauncherBase")
-                                .name("finishMixinBootstrapping")
-                                .findOrThrow(method.instructions),
-                            InsnList().apply {
-                                add(
-                                    MethodInsnNode(
-                                        Opcodes.INVOKESTATIC,
-                                        "net/typho/big_shot/agent/platform/fabric/BigShotFabric",
-                                        "registerMixins",
-                                        "()V"
-                                    )
-                                )
-                            }
                         )
                     }
             }
@@ -153,24 +111,37 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
     }
 
     @JvmStatic
-    fun clinit() {
+    fun init() {
         LOG_INSTANCE = FabricLogImpl
         Log.info("Loading big shot on fabric")
     }
 
     @JvmStatic
-    fun loadGameProvider(provider: GameProvider) {
-        Log.info("game provider $provider, name ${provider.gameName} and version ${provider.rawGameVersion}")
-    }
-
-    @JvmStatic
-    fun registerMixins() {
-        Log.info("registering mixins")
-        //Mixins.addConfiguration("big_shot.mixins.json")
-    }
-
-    @JvmStatic
     fun finishModLoading() {
+        Log.info("Loading big shot mod metadata")
+
+        for (mod in FabricLoader.getInstance().allMods) {
+            try {
+                val paths = getModPaths(mod.origin)
+
+                for (uri in paths) {
+                    val metadata = uri.resolve("big_shot.mod.json")
+
+                    println(metadata)
+                }
+            } catch (t: Throwable) {
+                Log.error("Error while loading big shot mod metadata for $mod", t)
+            }
+        }
+    }
+
+    private fun getModPaths(origin: ModOrigin): List<URI> {
+        return when (origin.kind) {
+            ModOrigin.Kind.PATH -> origin.paths.map { it.toUri() }
+            ModOrigin.Kind.NESTED -> getModPaths(FabricLoader.getInstance().getModContainer(origin.parentModId).orElseThrow().origin)
+                .map { it.resolve(origin.parentSubLocation).normalize() }
+            else -> listOf()
+        }
     }
 
     object CandidateFinder : ModCandidateFinder {
