@@ -2,7 +2,9 @@
   "required": true,
   "package": "net.typho.big_shot.api.mixin",
   "compatibilityLevel": "JAVA_25",
-  "mixins": [],
+  "mixins": [
+    "MutableComponentMixin"
+  ],
   "client": [
     "client.SplashManagerMixin",
     "client.rendering.ssbo.GlCommandEncoderMixin",

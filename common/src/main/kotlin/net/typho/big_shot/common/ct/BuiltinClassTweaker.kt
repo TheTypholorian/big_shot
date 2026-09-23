@@ -94,6 +94,7 @@ object BuiltinClassTweaker {
             )
         }
         visitEnumExtension("com/mojang/blaze3d/shaders/UniformType", "BIG_SHOT_SSBO", true)
+        visitInjectedInterface("net/minecraft/network/chat/MutableComponent", "net/typho/big_shot/api/util/MutableComponentExtension", true)
     }
 
     @JvmStatic
