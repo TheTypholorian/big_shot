@@ -11,9 +11,12 @@ import kotlin.io.path.absolutePathString
 import kotlin.system.exitProcess
 
 internal object AgentLoadedCheck {
+    @JvmField
+    var loaded = false
+
     @JvmStatic
     fun check(paths: List<Path>) {
-        if (!BigShotAgent.LOADED) {
+        if (!loaded) {
             var message = "The Big Shot library requires its java agent to be loaded."
             val options = mutableListOf<Pair<String, () -> Unit>>()
 
@@ -22,7 +25,7 @@ internal object AgentLoadedCheck {
                 message += "\nThis can be solved by adding the java argument\n$arg\nto your Minecraft instance."
                 options.add("Copy Argument" to { Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(arg), null) })
             } else {
-                message += "\nYour situation is funky, please ask in the typho.net discord server (https://typho.net/discord) for help."
+                message += "\nPlease ask in the typho.net discord server (https://typho.net/discord) for help."
                 message += "\n\tNon-singular set of mod origin paths:"
 
                 for (path in paths) {
