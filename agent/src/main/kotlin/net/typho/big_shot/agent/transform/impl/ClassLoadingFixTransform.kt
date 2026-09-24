@@ -1,7 +1,10 @@
 package net.typho.big_shot.agent.transform.impl
 
+import net.fabricmc.loader.impl.util.LoaderUtil
+import net.fabricmc.loader.impl.util.UrlUtil
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.method.MethodPointer
+import net.typho.big_shot.agent.BigShotAgent
 import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.common.event.EventGraph
@@ -12,6 +15,7 @@ import org.objectweb.asm.tree.JumpInsnNode
 import org.objectweb.asm.tree.LabelNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
+import java.net.URL
 
 /**
  * Transforms [net.fabricmc.loader.impl.launch.knot.KnotClassDelegate] to allow loading of agent classes from the main process
@@ -31,12 +35,13 @@ object ClassLoadingFixTransform : TransformEvent.KnownTargets("net/fabricmc/load
         MethodPointer.method().name("isValidParentUrl").findOrThrow(info.node) { method ->
             method.instructions.insert(InsnList().apply {
                 val label = LabelNode()
+                add(VarInsnNode(Opcodes.ALOAD, 1))
                 add(VarInsnNode(Opcodes.ALOAD, 2))
                 add(MethodInsnNode(
                     Opcodes.INVOKESTATIC,
                     "net/typho/big_shot/agent/transform/impl/ClassLoadingFixTransform",
                     "test",
-                    "(Ljava/lang/String;)Z"
+                    "(Ljava/net/URL;Ljava/lang/String;)Z"
                 ))
                 add(JumpInsnNode(Opcodes.IFEQ, label))
                 add(InsnNode(Opcodes.ICONST_1))
@@ -47,19 +52,7 @@ object ClassLoadingFixTransform : TransformEvent.KnownTargets("net/fabricmc/load
     }
 
     @JvmStatic
-    fun test(fileName: String): Boolean {
-        return fileName.startsWith("net/typho/big_shot/agent") // TODO
-        /*
-        return try {
-            println("testing $url")
-            val path = url.toURI().toPath()
-            println("testing path $path")
-            val r = url.toURI().toPath().startsWith(BigShotAgent.AGENT_PATH)
-            println("result $r")
-            r
-        } catch (e: FileSystemNotFoundException) {
-            false
-        }
-         */
+    fun test(url: URL, fileName: String): Boolean {
+        return LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName)) == BigShotAgent.AGENT_PATH
     }
 }

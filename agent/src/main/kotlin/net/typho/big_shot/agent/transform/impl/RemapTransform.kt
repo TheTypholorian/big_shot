@@ -2,7 +2,6 @@ package net.typho.big_shot.agent.transform.impl
 
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.big_shot.agent.BigShotAgent
-import net.typho.big_shot.agent.Log
 import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.common.event.EventGraph
@@ -21,10 +20,6 @@ object RemapTransform : EventGraph.SelfAware<String>, TransformEvent {
         mod: PlatformMod?,
         info: ClassTransformInfo
     ) {
-        if (mod?.id == "big_shot") {
-            Log.info("Remapping $mod ${info.className}")
-        }
-
         val newNode = ClassNode()
         val visitor = BigShotAgent.REMAP_EVENTS.resolve().foldRight(newNode as ClassVisitor) { event, visitor ->
             event.event.createVisitor(info, visitor) ?: visitor
@@ -33,12 +28,6 @@ object RemapTransform : EventGraph.SelfAware<String>, TransformEvent {
         if (visitor !== newNode) {
             info.node.accept(visitor)
             info.node = newNode
-        }
-    }
-
-    override fun transformMixin(info: ClassTransformInfo) {
-        if (info.className.contains("big_shot")) {
-            Log.info("Remapping mixin ${info.className}")
         }
     }
 }

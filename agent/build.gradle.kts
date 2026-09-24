@@ -22,6 +22,7 @@ dependencies {
     } // TODO
 
     jij(kotlin("stdlib"))
+    jij(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")!!)
 
     compileOnly("org.ow2.asm:asm:9.10.1")
     compileOnly("org.ow2.asm:asm-tree:9.10.1")
@@ -39,9 +40,13 @@ dependencies {
     jij(implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {
         isTransitive = false
     })
+    jij(implementation("net.typho:data_util:${rootProject.property("versions.data_util")}") {
+        isTransitive = false
+    })
     jij(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0") {
         isTransitive = false
     })
+    jij(implementation(kotlin("reflect"))!!)
     compileOnly("org.spongepowered:mixin:0.8.5")
 }
 

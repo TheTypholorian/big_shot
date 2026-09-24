@@ -6,9 +6,9 @@ import net.typho.asm_util.ClassTransformInfo
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 
-object BuiltinClassTweaker {
+object ClassTweakers {
     @JvmField
-    val INSTANCE = ClassTweaker.newInstance().apply {
+    val EARLY = ClassTweaker.newInstance().apply {
         visitAccessWidener("net/fabricmc/loader/impl/discovery/ModCandidateFinder")!!.apply {
             visitClass(AccessWidenerVisitor.AccessType.ACCESSIBLE, false)
         }
@@ -68,40 +68,13 @@ object BuiltinClassTweaker {
                 false
             )
         }
-
-        visitAccessWidener("com/mojang/blaze3d/opengl/Uniform")!!.apply {
-            visitClass(AccessWidenerVisitor.AccessType.EXTENDABLE, false)
-        }
-        visitAccessWidener("com/mojang/blaze3d/opengl/GlRenderPass")!!.apply {
-            visitClass(AccessWidenerVisitor.AccessType.ACCESSIBLE, false)
-            visitField(
-                "uniforms",
-                "Ljava/util/HashMap;",
-                AccessWidenerVisitor.AccessType.ACCESSIBLE,
-                false
-            )
-            visitField(
-                "dirtyUniforms",
-                "Ljava/util/Set;",
-                AccessWidenerVisitor.AccessType.ACCESSIBLE,
-                false
-            )
-            visitField(
-                "pipeline",
-                "Lcom/mojang/blaze3d/opengl/GlRenderPipeline;",
-                AccessWidenerVisitor.AccessType.ACCESSIBLE,
-                false
-            )
-        }
-        visitEnumExtension("com/mojang/blaze3d/shaders/UniformType", "BIG_SHOT_SSBO", true)
-        visitInjectedInterface("net/minecraft/network/chat/MutableComponent", "net/typho/big_shot/api/util/MutableComponentExtension", true)
     }
 
     @JvmStatic
-    fun apply(info: ClassTransformInfo) {
-        if (INSTANCE.allAccessWideners.containsKey(info.className) || INSTANCE.allEnumExtensions.containsKey(info.className) || INSTANCE.allInjectedInterfaces.containsKey(info.className)) {
+    fun ClassTweaker.apply(info: ClassTransformInfo) {
+        if (allAccessWideners.containsKey(info.className) || allEnumExtensions.containsKey(info.className) || allInjectedInterfaces.containsKey(info.className)) {
             val newNode = ClassNode()
-            info.node.accept(INSTANCE.createClassVisitor(
+            info.node.accept(createClassVisitor(
                 Opcodes.ASM9,
                 newNode,
                 null

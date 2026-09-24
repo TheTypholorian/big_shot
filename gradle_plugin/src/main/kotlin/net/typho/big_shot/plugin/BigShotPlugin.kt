@@ -1,7 +1,12 @@
 package net.typho.big_shot.plugin
 
+import net.fabricmc.classtweaker.api.ClassTweaker
+import net.fabricmc.classtweaker.api.ClassTweakerReader
+import net.typho.big_shot.common.BigShotModData
+import net.typho.big_shot.common.ct.ClassTweakers
 import net.typho.big_shot.plugin.transform.AccessWidenTransformAction
 import net.typho.big_shot.plugin.transform.MinecraftTransformAction
+import net.typho.data_util.impl.JsonFormat
 import org.apache.maven.model.Model
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer
 import org.eclipse.aether.artifact.DefaultArtifact
@@ -12,8 +17,16 @@ import org.eclipse.aether.supplier.RepositorySystemSupplier
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.plugins.JavaPluginExtension
+import sun.util.calendar.CalendarUtils.mod
+import java.io.File
+import java.io.FileNotFoundException
 import java.net.URI
 import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.bufferedReader
+import kotlin.io.path.exists
+import kotlin.io.path.readText
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writer
 
@@ -33,13 +46,10 @@ class BigShotPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         val cacheFolder = project.gradle.gradleUserHomeDir.resolve("caches").resolve("big_shot")
-        val service = project.gradle.sharedServices.registerIfAbsent("BigShot", BigShotBuildService::class.java) {
-            it.parameters.cacheFolder.set(cacheFolder)
-        }
+        val ext = project.extensions.create("bigShot", BigShotBuildService::class.java, cacheFolder)
 
-        //project.plugins.apply("java")
-        //val javaExt = project.extensions.getByType(JavaPluginExtension::class.java)
-        //val manifest = javaExt.sourceSets.create("manifest")
+        project.plugins.apply("java")
+        val javaExt = project.extensions.getByType(JavaPluginExtension::class.java)
 
         project.dependencies.artifactTypes.configureEach {
             it.attributes.attribute(MINECRAFT_TRANSFORMED_ATTRIBUTE, false)
@@ -52,6 +62,27 @@ class BigShotPlugin : Plugin<Project> {
         project.dependencies.registerTransform(AccessWidenTransformAction::class.java) {
             it.from.attribute(ACCESS_WIDENED_ATTRIBUTE, false)
             it.to.attribute(ACCESS_WIDENED_ATTRIBUTE, true)
+            it.parameters.classTweakers.set(project.provider {
+                val classTweakers = mutableListOf<File>()
+                javaExt.sourceSets.forEach { it.resources.sourceDirectories.forEach {
+                    val metadata = it.resolve("big_shot.mod.json")
+
+                    if (metadata.exists()) {
+                        val data = JsonFormat().read(BigShotModData.CODEC, metadata.readText())
+
+                        data.classTweaker?.let { classTweaker ->
+                            val file = it.resolve(classTweaker)
+
+                            if (file.exists()) {
+                                classTweakers.add(file)
+                            } else {
+                                System.err.println("Class tweaker ${data.classTweaker} does not exist (should be at $file)")
+                            }
+                        }
+                    }
+                } }
+                classTweakers
+            })
         }
 
         val extraAccessWiden = project.configurations.create("extraAccessWiden")
@@ -76,7 +107,7 @@ class BigShotPlugin : Plugin<Project> {
             it.setUrl("https://libraries.minecraft.net")
         }
 
-        val version = service.get().versionManifest.getFamily("26.2")
+        val version = ext.versionManifest.getFamily("26.2")
 
         val artifact = DefaultArtifact(
             "com.mojang",

@@ -22,8 +22,6 @@ dependencies {
         isTransitive = false
     } // TODO
 
-    jij(kotlin("stdlib"))
-    jij(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")!!)
     compileOnly("org.spongepowered:mixin:0.8.5")
 
     implementation("org.ow2.asm:asm:9.10.1")
@@ -33,16 +31,19 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2")
     compileOnly("org.apache.commons:commons-lang3:3.20.0")
     extraAccessWiden("io.github.llamalad7:mixinextras-fabric:0.5.5")
-    jij(implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {
+    implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {
         isTransitive = false
-    })
-    jij(implementation(project(":common")) { // TODO
+    }
+    implementation("net.typho:data_util:${rootProject.property("versions.data_util")}") {
         isTransitive = false
-    })
-    jij(implementation("net.fabricmc:class-tweaker:0.3.0") {
+    }
+    implementation(project(":common")) { // TODO
         isTransitive = false
-    })
-    jij(implementation(kotlin("reflect"))!!)
+    }
+    implementation("net.fabricmc:class-tweaker:0.3.0") {
+        isTransitive = false
+    }
+    implementation(kotlin("reflect"))
     compileOnly(project(":agent")) {
         isTransitive = false
     }

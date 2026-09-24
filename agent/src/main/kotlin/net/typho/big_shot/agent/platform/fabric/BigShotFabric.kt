@@ -1,5 +1,7 @@
 package net.typho.big_shot.agent.platform.fabric
 
+import net.fabricmc.classtweaker.api.ClassTweaker
+import net.fabricmc.classtweaker.api.ClassTweakerReader
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.ModContainer
 import net.fabricmc.loader.impl.ModContainerImpl
@@ -16,18 +18,24 @@ import net.typho.big_shot.agent.LOG_INSTANCE
 import net.typho.big_shot.agent.Log
 import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.transform.TransformEvent
+import net.typho.big_shot.agent.transform.impl.ClassTweakerTransform
+import net.typho.big_shot.common.BigShotModData
 import net.typho.big_shot.common.KtServiceLoader
 import net.typho.big_shot.common.KtServiceLoader.loadAll
 import net.typho.big_shot.common.event.EventGraph
+import net.typho.data_util.impl.JsonFormat
 import org.jetbrains.annotations.ApiStatus
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.InsnList
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
+import java.io.FileNotFoundException
 import java.net.URL
 import java.nio.file.Path
 import java.util.ServiceLoader
+import kotlin.collections.mapValues
+import kotlin.io.path.bufferedReader
 import kotlin.io.path.readText
 import kotlin.io.path.reader
 import kotlin.jvm.optionals.getOrNull
@@ -233,9 +241,16 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
 
         for (mod in FabricLoader.getInstance().allMods) {
             try {
-                val metadata = mod.findPath("big_shot.mod.json")
-                println("$mod $metadata")
-                metadata.ifPresent { println("\t${it.readText()}") }
+                mod.findPath("big_shot.mod.json").ifPresent {
+                    val data = JsonFormat().read(BigShotModData.CODEC, it.readText())
+
+                    if (data.classTweaker != null) {
+                        val file = mod.findPath(data.classTweaker).orElseThrow { FileNotFoundException("Mod '$mod' is missing class tweaker ${data.classTweaker}") }
+                        val tweaker = ClassTweaker.newInstance()
+                        ClassTweakerReader.create(tweaker).read(file.bufferedReader())
+                        ClassTweakerTransform.CLASS_TWEAKERS.add(tweaker)
+                    }
+                }
             } catch (t: Throwable) {
                 Log.error("Error while loading big shot mod metadata for $mod", t)
             }

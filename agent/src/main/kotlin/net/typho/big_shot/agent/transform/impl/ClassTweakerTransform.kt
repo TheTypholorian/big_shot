@@ -1,14 +1,18 @@
 package net.typho.big_shot.agent.transform.impl
 
+import net.fabricmc.classtweaker.api.ClassTweaker
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.transform.TransformEvent
-import net.typho.big_shot.common.ct.BuiltinClassTweaker
+import net.typho.big_shot.common.ct.ClassTweakers
+import net.typho.big_shot.common.ct.ClassTweakers.apply
 import net.typho.big_shot.common.event.EventGraph
 
-object BuiltinClassTweakerTransform : EventGraph.SelfAware<String>, TransformEvent {
+object ClassTweakerTransform : EventGraph.SelfAware<String>, TransformEvent {
+    @JvmField
+    val CLASS_TWEAKERS = mutableListOf<ClassTweaker>(ClassTweakers.EARLY)
     override val id: String
-        get() = "big_shot:early_access_widener"
+        get() = "big_shot:class_tweaker"
 
     override fun postRegister(event: EventGraph<String, *>.Event) {
         event.after(RemapTransform)
@@ -18,6 +22,6 @@ object BuiltinClassTweakerTransform : EventGraph.SelfAware<String>, TransformEve
         mod: PlatformMod?,
         info: ClassTransformInfo
     ) {
-        BuiltinClassTweaker.apply(info)
+        CLASS_TWEAKERS.forEach { it.apply(info) }
     }
 }
