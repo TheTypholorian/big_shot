@@ -2,13 +2,30 @@ package net.typho.big_shot.agent.transform
 
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.big_shot.agent.BigShotAgent
+import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.common.event.EventGraph
 
 fun interface TransformEvent {
     fun transform(
-        type: TransformSource,
+        mod: PlatformMod?,
         info: ClassTransformInfo
     )
+
+    /**
+     * Injected into [org.spongepowered.asm.mixin.transformer.MixinInfo#loadMixinClass].
+     *
+     * Note that [transform] will already have been run on this class.
+     */
+    fun transformMixin(info: ClassTransformInfo) {
+    }
+
+    /**
+     * Injected into [org.spongepowered.asm.mixin.transformer.ClassInfo#loadMixinClass].
+     *
+     * Note that [transform] will already have been run on this class.
+     */
+    fun transformClassInfo(info: ClassTransformInfo) {
+    }
 
     abstract class KnownTargets(
         @JvmField
@@ -32,12 +49,12 @@ fun interface TransformEvent {
             }
         }
 
-        final override fun transform(type: TransformSource, info: ClassTransformInfo) {
+        final override fun transform(mod: PlatformMod?, info: ClassTransformInfo) {
             if (names.contains(info.className)) {
-                transformImpl(type, info)
+                transformImpl(mod, info)
             }
         }
 
-        protected abstract fun transformImpl(type: TransformSource, info: ClassTransformInfo)
+        protected abstract fun transformImpl(mod: PlatformMod?, info: ClassTransformInfo)
     }
 }

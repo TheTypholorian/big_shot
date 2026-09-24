@@ -7,8 +7,9 @@ import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
 import net.typho.big_shot.agent.Log
+import net.typho.big_shot.agent.PlatformMod
+import net.typho.big_shot.agent.platform.fabric.BigShotFabric
 import net.typho.big_shot.agent.transform.TransformEvent
-import net.typho.big_shot.agent.transform.TransformSource
 import net.typho.big_shot.common.event.EventGraph
 import net.typho.big_shot.common.mixin.kotlin.InvalidKotlinMixinException
 import org.objectweb.asm.ClassVisitor
@@ -16,6 +17,7 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.commons.Remapper
 import org.objectweb.asm.tree.ClassNode
+import org.spongepowered.asm.mixin.Mixins
 import org.spongepowered.asm.service.MixinService
 import kotlin.metadata.ClassKind
 import kotlin.metadata.jvm.KotlinClassMetadata
@@ -25,14 +27,15 @@ object KotlinMixinFixer : EventGraph.SelfAware<String>, TransformEvent {
     override val id: String
         get() = "big_shot:kotlin_mixin_fixer"
 
-    override fun transform(
-        type: TransformSource,
+    override fun transform(mod: PlatformMod?, info: ClassTransformInfo) {
+    }
+
+    override fun transformMixin(
         info: ClassTransformInfo
     ) {
-        if (type.isMixinClass) {
-            if (fix(info.node)) {
-                info.markChanged()
-            }
+        Log.info("Transforming ${info.className}")
+        if (fix(info.node)) {
+            info.markChanged()
         }
     }
 

@@ -1,11 +1,16 @@
 {
   "schemaVersion": 1,
-  "id": "big_shot_agent_check",
+  "id": "big_shot_agent",
   "version": "1.0.0",
   "description": "A checker that ensures the Big Shot java agent is loaded.\nNote that this is NOT big shot itself, merely an entrypoint to ensure that it will load correctly.\nDo not depend on this mod existing, big shot itself may or may not be in the mods folder.",
   "entrypoints": {
     "preLaunch": [
       "net.typho.big_shot.agent.platform.fabric.FabricPreLaunch"
     ]
-  }
+  },
+  "jars": [
+    {
+      "file": "big_shot/api.jar"
+    }
+  ]
 }

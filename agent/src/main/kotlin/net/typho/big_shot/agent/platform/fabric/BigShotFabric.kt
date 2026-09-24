@@ -1,19 +1,21 @@
 package net.typho.big_shot.agent.platform.fabric
 
-import ca.weblite.objc.RuntimeUtils.cls
 import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.ModContainer
+import net.fabricmc.loader.impl.ModContainerImpl
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder
+import net.fabricmc.loader.impl.discovery.ModCandidateImpl
 import net.fabricmc.loader.impl.launch.FabricLauncherBase
+import net.fabricmc.loader.impl.util.LoaderUtil
+import net.fabricmc.loader.impl.util.UrlUtil
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.big_shot.agent.BigShotAgent
 import net.typho.big_shot.agent.LOG_INSTANCE
 import net.typho.big_shot.agent.Log
-import net.typho.big_shot.agent.TestInterface
+import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.transform.TransformEvent
-import net.typho.big_shot.agent.transform.TransformSource
 import net.typho.big_shot.common.KtServiceLoader
 import net.typho.big_shot.common.KtServiceLoader.loadAll
 import net.typho.big_shot.common.event.EventGraph
@@ -23,6 +25,8 @@ import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.InsnList
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
+import java.net.URL
+import java.nio.file.Path
 import java.util.ServiceLoader
 import kotlin.io.path.readText
 import kotlin.io.path.reader
@@ -33,12 +37,71 @@ import kotlin.jvm.optionals.getOrNull
 object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
     override val id: String
         get() = "big_shot:platform/fabric"
+    var initialized = false
+        private set
+    var loaded = false
+        private set
 
     override fun transform(
-        type: TransformSource,
+        mod: PlatformMod?,
         info: ClassTransformInfo
     ) {
         when (info.className) {
+            "net/fabricmc/loader/impl/ModContainerImpl" -> {
+                info.markChanged()
+                info.computeMaxStacks()
+
+                MethodPointer.method()
+                    .name("<init>")
+                    .findOrThrow(info.node) { method ->
+                        method.instructions.insertBefore(
+                            InsnPointer.fieldSet()
+                                .owner("net/fabricmc/loader/impl/ModContainerImpl")
+                                .name("codeSourcePaths")
+                                .desc("Ljava/util/List;")
+                                .findOrThrow(method.instructions),
+                            InsnList().apply {
+                                add(VarInsnNode(Opcodes.ALOAD, 1))
+                                add(MethodInsnNode(
+                                    Opcodes.INVOKESTATIC,
+                                    "net/typho/big_shot/agent/platform/fabric/BigShotFabric",
+                                    "getCodeSourcePaths",
+                                    "(Ljava/util/List;Lnet/fabricmc/loader/impl/discovery/ModCandidateImpl;)Ljava/util/List;"
+                                ))
+                            }
+                        )
+                    }
+            }
+
+            /*
+            "net/fabricmc/loader/impl/launch/knot/KnotClassDelegate" -> {
+                info.markChanged()
+                info.computeMaxStacks()
+
+                MethodPointer.method()
+                    .name("getRawClassByteArray")
+                    .desc("(Ljava/lang/String;Z)[B")
+                    .findOrThrow(info.node) { method ->
+                        method.instructions.insertBefore(
+                            InsnPointer.simple()
+                                .opcode(Opcodes.ARETURN)
+                                .lastOrdinal()
+                                .findOrThrow(method.instructions),
+                            InsnList().apply {
+                                add(VarInsnNode(Opcodes.ALOAD, 3))
+                                add(VarInsnNode(Opcodes.ALOAD, 1))
+                                add(MethodInsnNode(
+                                    Opcodes.INVOKESTATIC,
+                                    "net/typho/big_shot/agent/platform/fabric/BigShotFabric",
+                                    "getRawClassByteArray",
+                                    "([BLjava/net/URL;Ljava/lang/String;)[B"
+                                ))
+                            }
+                        )
+                    }
+            }
+             */
+
             "net/fabricmc/loader/impl/launch/knot/Knot" -> {
                 info.markChanged()
                 info.computeMaxStacks()
@@ -117,9 +180,51 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
     }
 
     @JvmStatic
+    fun getModForCodeSource(codeSource: Path): PlatformMod? {
+        return FabricLoader.getInstance().allMods.firstOrNull { (it as? ModContainerImpl)?.codeSourcePaths?.contains(codeSource) == true }?.let { FabricModImpl(it) }
+    }
+
+    @JvmStatic
+    fun getRawClassByteArray(bytes: ByteArray, url: URL, fileName: String): ByteArray {
+        val className = fileName.substringBeforeLast(".class")
+
+        try {
+            var mod: PlatformMod? = null
+
+            try {
+                if (loaded) {
+                    val codeSource = LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName))
+                    mod = getModForCodeSource(codeSource)
+                }
+            } catch (t: Throwable) {
+                Log.error("Error finding owner mod for class $className", t)
+            }
+
+            val info = ClassTransformInfo.ByteTransform(bytes)
+
+            BigShotAgent.TRANSFORM_EVENTS.execute { id, event ->
+                info.fallbackErrorSource = id
+                event.transform(mod, info)
+            }
+
+            return info.compile(BigShotAgent::debugSaveClass) ?: bytes
+        } catch (t: Throwable) {
+            Log.error("Error transforming class $className\nTransform event graph:\n${BigShotAgent.TRANSFORM_EVENTS}", t)
+
+            return bytes
+        }
+    }
+
+    @JvmStatic
+    fun getCodeSourcePaths(paths: List<Path>, candidate: ModCandidateImpl): List<Path> {
+        return if (candidate.id == "big_shot_agent") listOf() else paths
+    }
+
+    @JvmStatic
     fun init() {
         LOG_INSTANCE = FabricLogImpl
         Log.info("Loading big shot on fabric")
+        initialized = true
     }
 
     @JvmStatic
@@ -136,10 +241,12 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
             }
         }
 
-        loadModService(TestInterface::class.java).loadAll().forEach { (mod, services) ->
-            println("$mod: $services")
-            services.forEach { it.abc() }
-        }
+        //loadModService(TestInterface::class.java).loadAll().forEach { (mod, services) ->
+        //    println("$mod: $services")
+        //    services.forEach { it.abc() }
+        //}
+        loaded = true
+        FabricLoader.getInstance().allMods.forEach { Log.info("mod $it at ${(it as ModContainerImpl).codeSourcePaths}") }
     }
 
     @JvmStatic
@@ -157,7 +264,7 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
 
     object CandidateFinder : ModCandidateFinder {
         override fun findCandidates(consumer: ModCandidateFinder.ModCandidateConsumer) {
-            consumer.accept(BigShotAgent.API_PATH, false)
+            consumer.accept(BigShotAgent.AGENT_PATH, false)
         }
     }
 }

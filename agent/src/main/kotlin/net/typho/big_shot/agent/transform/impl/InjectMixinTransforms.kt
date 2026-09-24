@@ -5,8 +5,8 @@ import net.typho.asm_util.error.ClassVisitException
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.big_shot.agent.BigShotAgent
+import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.transform.TransformEvent
-import net.typho.big_shot.agent.transform.TransformSource
 import net.typho.big_shot.common.event.EventGraph
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
@@ -20,7 +20,7 @@ object InjectMixinTransforms : EventGraph.SelfAware<String>, TransformEvent {
         get() = "big_shot:mixin_transforms"
 
     override fun transform(
-        type: TransformSource,
+        mod: PlatformMod?,
         info: ClassTransformInfo
     ) {
         when (info.className) {
@@ -92,7 +92,7 @@ object InjectMixinTransforms : EventGraph.SelfAware<String>, TransformEvent {
 
             BigShotAgent.TRANSFORM_EVENTS.execute { id, event ->
                 info.fallbackErrorSource = id
-                event.transform(TransformSource.MIXIN, info)
+                event.transformMixin(info)
             }
 
             info.checkErrors()
@@ -113,7 +113,7 @@ object InjectMixinTransforms : EventGraph.SelfAware<String>, TransformEvent {
 
             BigShotAgent.TRANSFORM_EVENTS.execute { id, event ->
                 info.fallbackErrorSource = id
-                event.transform(TransformSource.CLASS_INFO, info)
+                event.transformClassInfo(info)
             }
 
             info.checkErrors()

@@ -3,8 +3,8 @@ package net.typho.big_shot.agent.transform.impl
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
+import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.transform.TransformEvent
-import net.typho.big_shot.agent.transform.TransformSource
 import net.typho.big_shot.common.event.EventGraph
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.MethodInsnNode
@@ -14,7 +14,7 @@ object InjectMixinUtilsTransform : EventGraph.SelfAware<String>, TransformEvent 
         get() = "big_shot:mixin_utils"
 
     override fun transform(
-        type: TransformSource,
+        mod: PlatformMod?,
         info: ClassTransformInfo
     ) {
         when (info.className) {

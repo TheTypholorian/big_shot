@@ -2,9 +2,8 @@ package net.typho.big_shot.agent.transform.impl
 
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.method.MethodPointer
-import net.typho.big_shot.agent.BigShotAgent
+import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.transform.TransformEvent
-import net.typho.big_shot.agent.transform.TransformSource
 import net.typho.big_shot.common.event.EventGraph
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.InsnList
@@ -13,9 +12,6 @@ import org.objectweb.asm.tree.JumpInsnNode
 import org.objectweb.asm.tree.LabelNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
-import java.net.URL
-import java.nio.file.FileSystemNotFoundException
-import kotlin.io.path.toPath
 
 /**
  * Transforms [net.fabricmc.loader.impl.launch.knot.KnotClassDelegate] to allow loading of agent classes from the main process
@@ -26,7 +22,7 @@ object ClassLoadingFixTransform : TransformEvent.KnownTargets("net/fabricmc/load
         get() = "big_shot:class_loading_fix"
 
     override fun transformImpl(
-        type: TransformSource,
+        mod: PlatformMod?,
         info: ClassTransformInfo
     ) {
         info.markChanged()

@@ -4,14 +4,12 @@ import net.typho.asm_util.ClassTransformInfo
 import net.typho.big_shot.agent.platform.fabric.BigShotFabric
 import net.typho.big_shot.agent.transform.RemapEvent
 import net.typho.big_shot.agent.transform.TransformEvent
-import net.typho.big_shot.agent.transform.TransformSource
 import net.typho.big_shot.agent.transform.impl.*
 import net.typho.big_shot.common.event.EventGraph
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.*
 import java.lang.instrument.ClassFileTransformer
 import java.lang.instrument.Instrumentation
-import java.nio.file.Files
 import java.nio.file.Paths
 import java.security.ProtectionDomain
 import kotlin.io.path.*
@@ -21,8 +19,6 @@ object BigShotAgent : ClassFileTransformer {
     val DEBUG_PATH = Paths.get(".big_shot_debug")
     @JvmField
     val AGENT_PATH = javaClass.protectionDomain.codeSource.location.toURI().toPath()
-    @JvmField
-    val API_PATH = Files.createTempDirectory("big_shot_agent").resolve("api.jar")
 
     @get:JvmName("getInstrumentation")
     lateinit var INSTRUMENTATION: Instrumentation
@@ -58,11 +54,21 @@ object BigShotAgent : ClassFileTransformer {
         bytes: ByteArray
     ): ByteArray? {
         try {
+            var mod: PlatformMod? = null
+
+            try {
+                if (BigShotFabric.loaded) {
+                    mod = BigShotFabric.getModForCodeSource(protectionDomain.codeSource.location.toURI().toPath())
+                }
+            } catch (t: Throwable) {
+                Log.error("Error finding owner mod for class $className", t)
+            }
+
             val info = ClassTransformInfo.ByteTransform(bytes)
 
             TRANSFORM_EVENTS.execute { id, event ->
                 info.fallbackErrorSource = id
-                event.transform(TransformSource.CLASS, info)
+                event.transform(mod, info)
             }
 
             return info.compile(::debugSaveClass)
@@ -93,12 +99,6 @@ object BigShotAgent : ClassFileTransformer {
         )
 
         DEBUG_PATH.deleteRecursively()
-
-        API_PATH.outputStream().use { output ->
-            javaClass.classLoader.getResourceAsStream("big_shot/api.jar").use { input ->
-                input!!.copyTo(output)
-            }
-        }
 
         inst.addTransformer(this, true)
     }
