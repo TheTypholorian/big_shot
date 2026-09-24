@@ -8,12 +8,6 @@ import java.nio.file.Path
 
 class FabricPreLaunch : PreLaunchEntrypoint {
     override fun onPreLaunch() {
-        fun getModPaths(mod: ModOrigin): List<Path> = when (mod.kind) {
-            ModOrigin.Kind.PATH -> mod.paths
-            ModOrigin.Kind.NESTED -> getModPaths(FabricLoader.getInstance().getModContainer(mod.parentModId).orElseThrow().origin)
-            else -> listOf()
-        }
-
-        AgentLoadedCheck.check(getModPaths(FabricLoader.getInstance().getModContainer("big_shot_agent_check").orElseThrow().origin))
+        AgentLoadedCheck.check(FabricLoader.getInstance().getModContainer("big_shot_agent_check").orElseThrow().rootPaths)
     }
 }

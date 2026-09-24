@@ -3,19 +3,26 @@ package net.typho.big_shot.common
 import java.util.ServiceLoader
 
 object KtServiceLoader {
-    @JvmOverloads
+    const val PREFIX = "META-INF/services/"
+
     @JvmStatic
-    fun <S : Any> load(service: Class<S>, loader: ClassLoader = Thread.currentThread().contextClassLoader) = loadProviders(service, loader).map { it.get() }
+    fun <S : Any> List<ServiceLoader.Provider<S>>.loadAll() = map { it.get() }
 
     @JvmOverloads
     @JvmStatic
-    fun <S : Any> loadProviders(service: Class<S>, loader: ClassLoader = Thread.currentThread().contextClassLoader): List<ServiceLoader.Provider<S>> {
-        val configs = loader.getResources("META-INF/services/${service.name}").toList()
+    fun <S : Any> load(service: Class<S>, loader: ClassLoader = Thread.currentThread().contextClassLoader): List<ServiceLoader.Provider<S>> {
+        val configs = loader.getResources(PREFIX + service.name).toList()
         val impls = configs.flatMapTo(mutableSetOf()) {
             val connection = it.openConnection()
             connection.useCaches = false
             connection.getInputStream().reader().readAllLines().filter { it.isNotBlank() }
         }
+        return load(service, impls, loader)
+    }
+
+    @JvmOverloads
+    @JvmStatic
+    fun <S : Any> load(service: Class<S>, impls: Collection<String>, loader: ClassLoader = Thread.currentThread().contextClassLoader): List<ServiceLoader.Provider<S>> {
         return impls.map {
             val cls = Class.forName(it, false, loader)
 
