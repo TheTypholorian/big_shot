@@ -33,7 +33,6 @@ object KotlinMixinFixer : EventGraph.SelfAware<String>, TransformEvent {
     override fun transformMixin(
         info: ClassTransformInfo
     ) {
-        Log.info("Transforming ${info.className}")
         if (fix(info.node)) {
             info.markChanged()
         }
@@ -56,6 +55,8 @@ object KotlinMixinFixer : EventGraph.SelfAware<String>, TransformEvent {
             Log.warn("Kotlin mixin ${node.name} must be a normal class for Big Shot to tweak it, got a ${metadata.javaClass.name}. No action will be taken, if there are problems with the mixin, this is likely a cause.")
             return false
         }
+
+        Log.debug("Fixing kotlin mixin ${node.name}")
 
         when (metadata.kmClass.kind) {
             ClassKind.OBJECT -> {

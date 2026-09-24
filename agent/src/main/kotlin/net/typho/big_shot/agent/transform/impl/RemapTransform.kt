@@ -21,7 +21,7 @@ object RemapTransform : EventGraph.SelfAware<String>, TransformEvent {
         mod: PlatformMod?,
         info: ClassTransformInfo
     ) {
-        if (mod != null) {
+        if (mod?.id == "big_shot") {
             Log.info("Remapping $mod ${info.className}")
         }
 
@@ -33,6 +33,12 @@ object RemapTransform : EventGraph.SelfAware<String>, TransformEvent {
         if (visitor !== newNode) {
             info.node.accept(visitor)
             info.node = newNode
+        }
+    }
+
+    override fun transformMixin(info: ClassTransformInfo) {
+        if (info.className.contains("big_shot")) {
+            Log.info("Remapping mixin ${info.className}")
         }
     }
 }
