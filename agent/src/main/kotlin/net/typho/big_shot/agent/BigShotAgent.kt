@@ -66,7 +66,7 @@ object BigShotAgent : ClassFileTransformer {
                     protectionDomain.codeSource?.location?.toURI()?.toPath()?.let { mod = BigShotFabric.getModAt(it) }
                 }
             } catch (t: Throwable) {
-                Log.error("Error finding owner mod for class $className", t)
+                LOG.error("Error finding owner mod for class $className", t)
             }
 
             val info = ClassTransformInfo.ByteTransform(bytes)
@@ -78,7 +78,7 @@ object BigShotAgent : ClassFileTransformer {
 
             return info.compile(::debugSaveClass)
         } catch (t: Throwable) {
-            Log.error("Error transforming class $className\nTransform event graph:\n$TRANSFORM_EVENTS", t)
+            LOG.error("Error transforming class $className\nTransform event graph:\n$TRANSFORM_EVENTS", t)
 
             return null
         }
@@ -88,7 +88,7 @@ object BigShotAgent : ClassFileTransformer {
     @JvmStatic
     fun premain(args: String?, inst: Instrumentation) {
         AgentLoadedCheck.loaded = true
-        Log.info("Loading big shot agent from $AGENT_PATH")
+        LOG.info("Loading big shot agent from $AGENT_PATH")
 
         INSTRUMENTATION = inst
 
@@ -97,8 +97,7 @@ object BigShotAgent : ClassFileTransformer {
             ClassTweakerTransform,
             InjectMixinTransforms,
             KotlinMixinFixer,
-            RemapTransform,
-            BigShotFabric
+            RemapTransform
         )
 
         DEBUG_PATH.deleteRecursively()

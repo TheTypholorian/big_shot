@@ -2,10 +2,11 @@ package net.typho.big_shot.agent
 
 import java.io.PrintWriter
 import java.io.StringWriter
+import kotlin.properties.Delegates
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
-internal var LOG_INSTANCE: ILog = SystemLogImpl
-
-internal object Log : ILog by LOG_INSTANCE
+internal var LOG: ILog = SystemLogImpl
 
 internal object SystemLogImpl : ILog {
     private fun merge(msg: Any?, e: Throwable): String {

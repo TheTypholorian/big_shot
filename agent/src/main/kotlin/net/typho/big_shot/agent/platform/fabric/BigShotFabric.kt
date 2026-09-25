@@ -14,8 +14,7 @@ import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.big_shot.agent.BigShotAgent
-import net.typho.big_shot.agent.LOG_INSTANCE
-import net.typho.big_shot.agent.Log
+import net.typho.big_shot.agent.LOG
 import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.platform.BigShotPlatform
 import net.typho.big_shot.agent.transform.TransformEvent
@@ -50,8 +49,8 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
         private set
 
     init {
-        LOG_INSTANCE = FabricLogImpl
-        Log.info("Loading big shot on fabric")
+        LOG = FabricLogImpl
+        LOG.info("Loading big shot on fabric")
         BigShotAgent.TRANSFORM_EVENTS.register(this)
     }
 
@@ -114,27 +113,6 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
                     }
             }
              */
-
-            "net/fabricmc/loader/impl/launch/knot/Knot" -> {
-                info.markChanged()
-                info.computeMaxStacks()
-
-                MethodPointer.method()
-                    .name("<clinit>")
-                    .findOrThrow(info.node) { method ->
-                        method.instructions.insertBefore(
-                            InsnPointer.simple()
-                                .opcode(Opcodes.RETURN)
-                                .findOrThrow(method.instructions),
-                            MethodInsnNode(
-                                Opcodes.INVOKESTATIC,
-                                "net/typho/big_shot/agent/platform/fabric/BigShotFabric",
-                                "init",
-                                "()V"
-                            )
-                        )
-                    }
-            }
 
             "net/fabricmc/loader/impl/FabricLoaderImpl" -> {
                 info.markChanged()
@@ -208,7 +186,7 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
                     mod = getModAt(LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName)))
                 }
             } catch (t: Throwable) {
-                Log.error("Error finding owner mod for class $className", t)
+                LOG.error("Error finding owner mod for class $className", t)
             }
 
             val info = ClassTransformInfo.ByteTransform(bytes)
@@ -220,7 +198,7 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
 
             return info.compile(BigShotAgent::debugSaveClass) ?: bytes
         } catch (t: Throwable) {
-            Log.error("Error transforming class $className\nTransform event graph:\n${BigShotAgent.TRANSFORM_EVENTS}", t)
+            LOG.error("Error transforming class $className\nTransform event graph:\n${BigShotAgent.TRANSFORM_EVENTS}", t)
 
             return bytes
         }
@@ -233,7 +211,7 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
 
     @JvmStatic
     fun finishModLoading() {
-        Log.info("Loading big shot mod metadata")
+        LOG.info("Loading big shot mod metadata")
 
         for (mod in FabricLoader.getInstance().allMods) {
             try {
@@ -248,16 +226,16 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
                     }
                 }
             } catch (t: Throwable) {
-                Log.error("Error while loading big shot mod metadata for $mod", t)
+                LOG.error("Error while loading big shot mod metadata for $mod", t)
             }
         }
 
         //loadModService(TestInterface::class.java).loadAll().forEach { (mod, services) ->
-        //    println("$mod: $services")
+        //    LOG.info("$mod: $services")
         //    services.forEach { it.abc() }
         //}
         loaded = true
-        FabricLoader.getInstance().allMods.forEach { Log.info("mod $it at ${(it as ModContainerImpl).codeSourcePaths}") }
+        FabricLoader.getInstance().allMods.forEach { LOG.info("mod $it at ${(it as ModContainerImpl).codeSourcePaths}") }
     }
 
     @JvmStatic
@@ -266,7 +244,7 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
     @JvmOverloads
     @JvmStatic
     fun <S : Any> loadModService(service: Class<S>, loader: ClassLoader = FabricLauncherBase.getLauncher().targetClassLoader ?: Thread.currentThread().contextClassLoader): Map<ModContainer, List<ServiceLoader.Provider<S>>> {
-        println("loader $loader")
+        LOG.info("loader $loader")
         return FabricLoader.getInstance().allMods.associateWith { mod ->
             val path = mod.findPath(KtServiceLoader.PREFIX + service.name).getOrNull() ?: return@associateWith listOf()
             KtServiceLoader.load(service, path.reader().readAllLines().filter { it.isNotBlank() }, loader)

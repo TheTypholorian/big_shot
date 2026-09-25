@@ -6,9 +6,8 @@ import net.typho.asm_util.KotlinUtil.kotlinMetadata
 import net.typho.asm_util.insn.InsnPointer
 import net.typho.asm_util.method.MethodPointer
 import net.typho.asm_util.remap.CompatClassRemapper
-import net.typho.big_shot.agent.Log
+import net.typho.big_shot.agent.LOG
 import net.typho.big_shot.agent.PlatformMod
-import net.typho.big_shot.agent.platform.fabric.BigShotFabric
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.common.event.EventGraph
 import net.typho.big_shot.common.mixin.kotlin.InvalidKotlinMixinException
@@ -17,7 +16,6 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.commons.Remapper
 import org.objectweb.asm.tree.ClassNode
-import org.spongepowered.asm.mixin.Mixins
 import org.spongepowered.asm.service.MixinService
 import kotlin.metadata.ClassKind
 import kotlin.metadata.jvm.KotlinClassMetadata
@@ -51,11 +49,11 @@ object KotlinMixinFixer : EventGraph.SelfAware<String>, TransformEvent {
         var changed = false
 
         if (metadata !is KotlinClassMetadata.Class) {
-            Log.warn("Kotlin mixin ${node.name} must be a normal class for Big Shot to tweak it, got a ${metadata.javaClass.name}. No action will be taken, if there are problems with the mixin, this is likely a cause.")
+            LOG.warn("Kotlin mixin ${node.name} must be a normal class for Big Shot to tweak it, got a ${metadata.javaClass.name}. No action will be taken, if there are problems with the mixin, this is likely a cause.")
             return false
         }
 
-        Log.debug("Fixing kotlin mixin ${node.name}")
+        LOG.debug("Fixing kotlin mixin ${node.name}")
 
         when (metadata.kmClass.kind) {
             ClassKind.OBJECT -> {
