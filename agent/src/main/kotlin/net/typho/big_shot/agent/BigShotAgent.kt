@@ -3,6 +3,7 @@ package net.typho.big_shot.agent
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.big_shot.agent.platform.BigShotPlatform
 import net.typho.big_shot.agent.platform.fabric.BigShotFabric
+import net.typho.big_shot.agent.platform.neoforge.BigShotNeoForge
 import net.typho.big_shot.agent.transform.RemapEvent
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.impl.*
@@ -56,6 +57,8 @@ object BigShotAgent : ClassFileTransformer {
     ): ByteArray? {
         if (className == "net/fabricmc/loader/impl/launch/knot/Knot") {
             BigShotPlatform.INSTANCE = BigShotFabric
+        } else if (className == "net/neoforged/fml/startup/Entrypoint") {
+            BigShotPlatform.INSTANCE = BigShotNeoForge
         }
 
         try {
@@ -93,7 +96,6 @@ object BigShotAgent : ClassFileTransformer {
         INSTRUMENTATION = inst
 
         TRANSFORM_EVENTS.register(
-            ClassLoadingFixTransform,
             ClassTweakerTransform,
             InjectMixinTransforms,
             KotlinMixinFixer,

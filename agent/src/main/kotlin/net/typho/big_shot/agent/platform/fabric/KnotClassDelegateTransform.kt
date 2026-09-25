@@ -1,4 +1,4 @@
-package net.typho.big_shot.agent.transform.impl
+package net.typho.big_shot.agent.platform.fabric
 
 import net.fabricmc.loader.impl.util.LoaderUtil
 import net.fabricmc.loader.impl.util.UrlUtil
@@ -21,9 +21,9 @@ import java.net.URL
  * Transforms [net.fabricmc.loader.impl.launch.knot.KnotClassDelegate] to allow loading of agent classes from the main process
  */
 @Suppress("unused")
-object ClassLoadingFixTransform : TransformEvent.KnownTargets("net/fabricmc/loader/impl/launch/knot/KnotClassDelegate"), EventGraph.SelfAware<String> {
+object KnotClassDelegateTransform : TransformEvent.KnownTargets("net/fabricmc/loader/impl/launch/knot/KnotClassDelegate"), EventGraph.SelfAware<String> {
     override val id: String
-        get() = "big_shot:class_loading_fix"
+        get() = "big_shot:knot_class_delegate"
 
     override fun transformImpl(
         mod: PlatformMod?,
@@ -32,17 +32,19 @@ object ClassLoadingFixTransform : TransformEvent.KnownTargets("net/fabricmc/load
         info.markChanged()
         info.computeFrames()
 
-        MethodPointer.method().name("isValidParentUrl").findOrThrow(info.node) { method ->
+        MethodPointer.Companion.method().name("isValidParentUrl").findOrThrow(info.node) { method ->
             method.instructions.insert(InsnList().apply {
                 val label = LabelNode()
                 add(VarInsnNode(Opcodes.ALOAD, 1))
                 add(VarInsnNode(Opcodes.ALOAD, 2))
-                add(MethodInsnNode(
-                    Opcodes.INVOKESTATIC,
-                    "net/typho/big_shot/agent/transform/impl/ClassLoadingFixTransform",
-                    "test",
-                    "(Ljava/net/URL;Ljava/lang/String;)Z"
-                ))
+                add(
+                    MethodInsnNode(
+                        Opcodes.INVOKESTATIC,
+                        "net/typho/big_shot/agent/transform/impl/ClassLoadingFixTransform",
+                        "test",
+                        "(Ljava/net/URL;Ljava/lang/String;)Z"
+                    )
+                )
                 add(JumpInsnNode(Opcodes.IFEQ, label))
                 add(InsnNode(Opcodes.ICONST_1))
                 add(InsnNode(Opcodes.IRETURN))

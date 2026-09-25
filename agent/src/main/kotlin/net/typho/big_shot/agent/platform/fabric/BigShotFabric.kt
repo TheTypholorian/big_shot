@@ -1,7 +1,6 @@
 package net.typho.big_shot.agent.platform.fabric
 
 import net.fabricmc.loader.api.FabricLoader
-import net.fabricmc.loader.api.ModContainer
 import net.fabricmc.loader.impl.ModContainerImpl
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder
 import net.fabricmc.loader.impl.discovery.ModCandidateImpl
@@ -16,8 +15,6 @@ import net.typho.big_shot.agent.LOG
 import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.agent.platform.BigShotPlatform
 import net.typho.big_shot.agent.transform.TransformEvent
-import net.typho.big_shot.common.KtServiceLoader
-import net.typho.big_shot.common.KtServiceLoader.loadAll
 import net.typho.big_shot.common.event.EventGraph
 import org.jetbrains.annotations.ApiStatus
 import org.objectweb.asm.Opcodes
@@ -27,10 +24,6 @@ import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
 import java.net.URL
 import java.nio.file.Path
-import java.util.ServiceLoader
-import kotlin.collections.mapValues
-import kotlin.io.path.reader
-import kotlin.jvm.optionals.getOrNull
 
 @ApiStatus.Internal
 @Suppress("unused")
@@ -41,11 +34,14 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
         get() = "big_shot:platform/fabric"
     override var loaded = false
         private set
+    override val classLoader: ClassLoader
+        get() = FabricLauncherBase.getLauncher().targetClassLoader ?: Thread.currentThread().contextClassLoader
 
     init {
         LOG = FabricLogImpl
         LOG.info("Loading big shot on fabric")
         BigShotAgent.TRANSFORM_EVENTS.register(this)
+        BigShotAgent.TRANSFORM_EVENTS.register(KnotClassDelegateTransform)
     }
 
     override fun transform(
@@ -209,19 +205,6 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
     fun finishModLoading() {
         loadBigShotMetadata()
         loaded = true
-    }
-
-    @JvmStatic
-    fun <S : Any> Map<ModContainer, List<ServiceLoader.Provider<S>>>.loadAll() = mapValues { it.value.loadAll() }
-
-    @JvmOverloads
-    @JvmStatic
-    fun <S : Any> loadModService(service: Class<S>, loader: ClassLoader = FabricLauncherBase.getLauncher().targetClassLoader ?: Thread.currentThread().contextClassLoader): Map<ModContainer, List<ServiceLoader.Provider<S>>> {
-        LOG.info("loader $loader")
-        return FabricLoader.getInstance().allMods.associateWith { mod ->
-            val path = mod.findPath(KtServiceLoader.PREFIX + service.name).getOrNull() ?: return@associateWith listOf()
-            KtServiceLoader.load(service, path.reader().readAllLines().filter { it.isNotBlank() }, loader)
-        }.filterValues { !it.isEmpty() }
     }
 
     object CandidateFinder : ModCandidateFinder {

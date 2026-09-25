@@ -10,14 +10,15 @@ version = "1.0.0"
 repositories {
     mavenCentral()
     mavenLocal()
+    maven("https://maven.fabricmc.net")
+    maven("https://maven.neoforged.net/releases")
     maven("https://repo.spongepowered.org/repository/maven-public/")
     maven("https://typho.net/maven")
 }
 
 dependencies {
-    extraAccessWiden("net.fabricmc:fabric-loader:0.19.5") {
-        isTransitive = false
-    } // TODO
+    extraAccessWiden("net.fabricmc:fabric-loader:0.19.5") // TODO
+    extraAccessWiden("net.neoforged.fancymodloader:loader:11.0.23") // TODO
 
     shadow(kotlin("stdlib"))
     shadow(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")!!)

@@ -1,31 +1,28 @@
-package net.typho.big_shot.agent.platform.fabric
+package net.typho.big_shot.agent.platform.neoforge
 
-import net.fabricmc.loader.api.ModContainer
-import net.fabricmc.loader.api.metadata.ModDependency
+import net.neoforged.fml.ModContainer
+import net.neoforged.neoforgespi.language.IModInfo
 import net.typho.big_shot.agent.LOG
 import net.typho.big_shot.agent.PlatformMod
 import net.typho.big_shot.common.BigShotModData
 import net.typho.data_util.DataReadException
 import net.typho.data_util.impl.JsonFormat
 import java.io.InputStream
-import kotlin.io.path.inputStream
-import kotlin.io.path.readText
-import kotlin.jvm.optionals.getOrNull
 
-data class FabricModImpl(
+data class NeoForgeModImpl(
     @JvmField
-    val fabric: ModContainer
+    val neoforge: ModContainer
 ) : PlatformMod {
     override val id: String
-        get() = fabric.metadata.id
+        get() = neoforge.modInfo.modId
     override val version: String
-        get() = fabric.metadata.version.friendlyString
+        get() = neoforge.modInfo.version.toString()
     override val bigShotData: BigShotModData? by lazy {
         findResource(BigShotModData.FILE_NAME)?.use {
             try {
                 val data = JsonFormat().read(BigShotModData.CODEC, it.bufferedReader().readText())
 
-                if (id != "big_shot" && fabric.metadata.dependencies.none { it.modId == "big_shot" && it.kind == ModDependency.Kind.DEPENDS }) {
+                if (id != "big_shot" && neoforge.modInfo.dependencies.none { it.modId == "big_shot" && it.type == IModInfo.DependencyType.REQUIRED }) {
                     LOG.warn("Mod $id has big shot metadata but doesn't declare a dependency on big shot")
                 }
 
@@ -38,10 +35,10 @@ data class FabricModImpl(
     }
 
     override fun findResource(file: String): InputStream? {
-        return fabric.findPath(file).getOrNull()?.inputStream()
+        return neoforge.modInfo.owningFile.file.contents[file]?.open()
     }
 
     override fun toString(): String {
-        return fabric.toString()
+        return neoforge.toString()
     }
 }

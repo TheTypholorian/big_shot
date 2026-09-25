@@ -16,10 +16,6 @@ repositories {
 }
 
 dependencies {
-    extraAccessWiden("net.fabricmc:fabric-loader:0.19.5") {
-        isTransitive = false
-    } // TODO
-
     compileOnly("org.spongepowered:mixin:0.8.5")
 
     implementation("org.ow2.asm:asm:9.10.1")
