@@ -1,6 +1,8 @@
 package net.typho.big_shot.api.mixin.client.rendering.ssbo
 
+import com.llamalad7.mixinextras.sugar.Jump
 import com.llamalad7.mixinextras.sugar.Local
+import com.llamalad7.mixinextras.sugar.jump.JumpInfo
 import com.mojang.blaze3d.buffers.GpuBufferSlice
 import com.mojang.blaze3d.opengl.GlBuffer
 import com.mojang.blaze3d.opengl.GlRenderPass
@@ -9,8 +11,6 @@ import com.mojang.blaze3d.pipeline.BindGroupLayout
 import com.mojang.blaze3d.shaders.UniformType
 import net.typho.big_shot.api.client.rendering.buffer.GpuBufferUsage
 import net.typho.big_shot.api.client.rendering.ssbo.SsboUniform
-import net.typho.big_shot.api.mixin.jumps.Jump
-import net.typho.big_shot.api.mixin.jumps.JumpInfo
 import org.lwjgl.opengl.GL30.glBindBufferRange
 import org.lwjgl.opengl.GL43.GL_SHADER_STORAGE_BUFFER
 import org.objectweb.asm.Opcodes

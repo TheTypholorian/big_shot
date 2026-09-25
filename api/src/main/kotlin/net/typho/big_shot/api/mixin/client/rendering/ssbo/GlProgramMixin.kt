@@ -1,15 +1,16 @@
 package net.typho.big_shot.api.mixin.client.rendering.ssbo
 
+import com.llamalad7.mixinextras.sugar.Jump
 import com.llamalad7.mixinextras.sugar.Local
 import com.llamalad7.mixinextras.sugar.Share
+import com.llamalad7.mixinextras.sugar.jump.JumpInfo
+import com.llamalad7.mixinextras.sugar.jump.JumpInfoComplex
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef
 import com.mojang.blaze3d.opengl.GlProgram
 import com.mojang.blaze3d.opengl.Uniform
 import com.mojang.blaze3d.pipeline.BindGroupLayout
 import com.mojang.blaze3d.shaders.UniformType
 import net.typho.big_shot.api.client.rendering.ssbo.SsboUniform
-import net.typho.big_shot.api.mixin.jumps.Jump
-import net.typho.big_shot.api.mixin.jumps.JumpInfo
 import org.lwjgl.opengl.GL43.*
 import org.objectweb.asm.Opcodes
 import org.slf4j.Logger
@@ -54,7 +55,7 @@ abstract class GlProgramMixin {
                 Local(type = Uniform::class)
             ],
             shiftBeforeStack = true
-        ) jump: JumpInfo.Complex,
+        ) jump: JumpInfoComplex,
         @Local uniform: BindGroupLayout.UniformDescription,
         @Share("nextSsboBinding") nextSsboBinding: LocalIntRef
     ) {

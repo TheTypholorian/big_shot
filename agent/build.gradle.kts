@@ -14,15 +14,13 @@ repositories {
     maven("https://typho.net/maven")
 }
 
-val jij = configurations.create("jij")
-
 dependencies {
     extraAccessWiden("net.fabricmc:fabric-loader:0.19.5") {
         isTransitive = false
     } // TODO
 
-    jij(kotlin("stdlib"))
-    jij(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")!!)
+    shadow(kotlin("stdlib"))
+    shadow(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")!!)
 
     compileOnly("org.ow2.asm:asm:9.10.1")
     compileOnly("org.ow2.asm:asm-tree:9.10.1")
@@ -30,23 +28,23 @@ dependencies {
     compileOnly("org.ow2.asm:asm-commons:9.10.1")
     compileOnly("org.jetbrains:annotations:26.0.2")
     compileOnly("org.spongepowered:mixin:0.8.5")
-    extraAccessWiden("io.github.llamalad7:mixinextras-fabric:0.5.5")
-    jij(implementation("net.fabricmc:class-tweaker:0.3.0") {
+    implementation("io.github.llamalad7:mixinextras-fabric:0.6.0")
+    shadow(implementation("net.fabricmc:class-tweaker:0.3.0") {
         isTransitive = false
     })
-    jij(implementation(project(":common")) {
+    shadow(implementation(project(":common")) {
         isTransitive = false
     })
-    jij(implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {
+    shadow(implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {
         isTransitive = false
     })
-    jij(implementation("net.typho:data_util:${rootProject.property("versions.data_util")}") {
+    shadow(implementation("net.typho:data_util:${rootProject.property("versions.data_util")}") {
         isTransitive = false
     })
-    jij(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0") {
+    shadow(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0") {
         isTransitive = false
     })
-    jij(implementation(kotlin("reflect"))!!)
+    shadow(implementation(kotlin("reflect"))!!)
     compileOnly("org.spongepowered:mixin:0.8.5")
 }
 
@@ -56,9 +54,13 @@ kotlin {
 
 tasks.shadowJar {
     archiveClassifier.set("")
-    configurations = listOf(jij)
+    configurations = listOf(this@Project.configurations.shadow.get())
 
     from(project(":api").tasks.named("shadowJar")) {
+        into("big_shot")
+    }
+    from(this@Project.configurations.compileClasspath) {
+        include("mixinextras-fabric-*.jar") // TODO
         into("big_shot")
     }
 

@@ -37,7 +37,6 @@ object KotlinMixinFixer : EventGraph.SelfAware<String>, TransformEvent {
             info.markChanged()
         }
     }
-
     /**
      * If the mixin is written in kotlin, this method fixes it so it works fine (specifically, static methods).
      *

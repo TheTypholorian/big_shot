@@ -12,9 +12,13 @@
     "client.rendering.ssbo.UniformTypeMixin"
   ],
   "injectors": {
-    "defaultRequire": 1
+    "defaultRequire": 1,
+    "injectionPoints": [
+      "net.typho.big_shot.api.mixin.target.SwitchInjectionPoint",
+      "net.typho.big_shot.api.mixin.target.TypeInjectionPoint"
+    ]
   },
   "overwrites": {
     "requireAnnotations": true
-	}
+  }
 }

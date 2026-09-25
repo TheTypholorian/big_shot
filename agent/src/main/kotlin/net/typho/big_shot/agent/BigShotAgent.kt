@@ -90,9 +90,7 @@ object BigShotAgent : ClassFileTransformer {
         TRANSFORM_EVENTS.register(
             ClassLoadingFixTransform,
             ClassTweakerTransform,
-            ButIWantThatInMyMixinPackageTransform,
             InjectMixinTransforms,
-            InjectMixinUtilsTransform,
             KotlinMixinFixer,
             RemapTransform,
             BigShotFabric

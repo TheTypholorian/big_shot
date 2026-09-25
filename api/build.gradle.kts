@@ -15,8 +15,6 @@ repositories {
     maven("https://typho.net/maven")
 }
 
-val jij = configurations.create("jij")
-
 dependencies {
     extraAccessWiden("net.fabricmc:fabric-loader:0.19.5") {
         isTransitive = false
@@ -30,7 +28,7 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:9.10.1")
     compileOnly("org.jetbrains:annotations:26.0.2")
     compileOnly("org.apache.commons:commons-lang3:3.20.0")
-    extraAccessWiden("io.github.llamalad7:mixinextras-fabric:0.5.5")
+    implementation("io.github.llamalad7:mixinextras-fabric:0.6.0")
     implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}") {
         isTransitive = false
     }
@@ -56,5 +54,5 @@ kotlin {
 tasks.shadowJar {
     archiveVersion.set("")
     archiveClassifier.set("")
-    configurations = listOf(jij)
+    configurations = listOf(this@Project.configurations.shadow.get())
 }
