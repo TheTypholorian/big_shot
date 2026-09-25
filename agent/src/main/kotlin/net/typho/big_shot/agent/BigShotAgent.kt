@@ -1,6 +1,7 @@
 package net.typho.big_shot.agent
 
 import net.typho.asm_util.ClassTransformInfo
+import net.typho.big_shot.agent.platform.BigShotPlatform
 import net.typho.big_shot.agent.platform.fabric.BigShotFabric
 import net.typho.big_shot.agent.transform.RemapEvent
 import net.typho.big_shot.agent.transform.TransformEvent
@@ -53,12 +54,16 @@ object BigShotAgent : ClassFileTransformer {
         protectionDomain: ProtectionDomain,
         bytes: ByteArray
     ): ByteArray? {
+        if (className == "net/fabricmc/loader/impl/launch/knot/Knot") {
+            BigShotPlatform.INSTANCE = BigShotFabric
+        }
+
         try {
             var mod: PlatformMod? = null
 
             try {
                 if (BigShotFabric.loaded) {
-                    protectionDomain.codeSource?.location?.toURI()?.toPath()?.let { mod = BigShotFabric.getModForCodeSource(it) }
+                    protectionDomain.codeSource?.location?.toURI()?.toPath()?.let { mod = BigShotFabric.getModAt(it) }
                 }
             } catch (t: Throwable) {
                 Log.error("Error finding owner mod for class $className", t)

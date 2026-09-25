@@ -17,6 +17,7 @@ import net.typho.big_shot.agent.BigShotAgent
 import net.typho.big_shot.agent.LOG_INSTANCE
 import net.typho.big_shot.agent.Log
 import net.typho.big_shot.agent.PlatformMod
+import net.typho.big_shot.agent.platform.BigShotPlatform
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.impl.ClassTweakerTransform
 import net.typho.big_shot.common.BigShotModData
@@ -42,13 +43,17 @@ import kotlin.jvm.optionals.getOrNull
 
 @ApiStatus.Internal
 @Suppress("unused")
-object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
+object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformEvent {
     override val id: String
         get() = "big_shot:platform/fabric"
-    var initialized = false
-        private set
     var loaded = false
         private set
+
+    init {
+        LOG_INSTANCE = FabricLogImpl
+        Log.info("Loading big shot on fabric")
+        BigShotAgent.TRANSFORM_EVENTS.register(this)
+    }
 
     override fun transform(
         mod: PlatformMod?,
@@ -187,9 +192,8 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
         }
     }
 
-    @JvmStatic
-    fun getModForCodeSource(codeSource: Path): PlatformMod? {
-        return FabricLoader.getInstance().allMods.firstOrNull { (it as? ModContainerImpl)?.codeSourcePaths?.contains(codeSource) == true }?.let { FabricModImpl(it) }
+    override fun getModAt(path: Path): PlatformMod? {
+        return FabricLoader.getInstance().allMods.firstOrNull { (it as? ModContainerImpl)?.codeSourcePaths?.contains(path) == true }?.let { FabricModImpl(it) }
     }
 
     @JvmStatic
@@ -201,8 +205,7 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
 
             try {
                 if (loaded) {
-                    val codeSource = LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName))
-                    mod = getModForCodeSource(codeSource)
+                    mod = getModAt(LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName)))
                 }
             } catch (t: Throwable) {
                 Log.error("Error finding owner mod for class $className", t)
@@ -226,13 +229,6 @@ object BigShotFabric : EventGraph.SelfAware<String>, TransformEvent {
     @JvmStatic
     fun getCodeSourcePaths(paths: List<Path>, candidate: ModCandidateImpl): List<Path> {
         return if (candidate.id == "big_shot_agent") listOf() else paths
-    }
-
-    @JvmStatic
-    fun init() {
-        LOG_INSTANCE = FabricLogImpl
-        Log.info("Loading big shot on fabric")
-        initialized = true
     }
 
     @JvmStatic
