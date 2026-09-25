@@ -7,6 +7,7 @@ data class BigShotModData(
     val classTweaker: String?
 ) {
     companion object {
+        const val FILE_NAME = "big_shot.mod.json"
         @JvmField
         val CODEC = Codec.reflect(BigShotModData::class.java)
     }

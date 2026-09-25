@@ -61,12 +61,12 @@ object BigShotAgent : ClassFileTransformer {
         try {
             var mod: PlatformMod? = null
 
-            try {
-                if (BigShotFabric.loaded) {
-                    protectionDomain.codeSource?.location?.toURI()?.toPath()?.let { mod = BigShotFabric.getModAt(it) }
+            if (BigShotPlatform.INSTANCE?.loaded == true) {
+                try {
+                    protectionDomain.codeSource?.location?.toURI()?.toPath()?.let { mod = BigShotPlatform.INSTANCE?.getModAt(it) }
+                } catch (t: Throwable) {
+                    LOG.error("Error finding owner mod for class $className", t)
                 }
-            } catch (t: Throwable) {
-                LOG.error("Error finding owner mod for class $className", t)
             }
 
             val info = ClassTransformInfo.ByteTransform(bytes)
