@@ -9,5 +9,10 @@
   ],
   "depends": {
     "fabricloader": "~0.19.0"
-  }
+  },
+  "jars": [
+    {
+      "file": "big_shot/mixinextras-fabric-0.6.0.jar"
+    }
+  ]
 }

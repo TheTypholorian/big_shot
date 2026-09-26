@@ -12,7 +12,6 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.*
 import java.lang.instrument.ClassFileTransformer
 import java.lang.instrument.Instrumentation
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.security.ProtectionDomain
 import kotlin.io.path.*
@@ -93,7 +92,6 @@ object BigShotAgent : ClassFileTransformer {
     @OptIn(ExperimentalPathApi::class)
     @JvmStatic
     fun premain(args: String?, inst: Instrumentation) {
-        AgentLoadedCheck.loaded = true
         LOG.info("Loading big shot agent from $AGENT_PATH")
         LOG.info("Writing api jar to $API_PATH")
         javaClass.classLoader.getResourceAsStream("big_shot/api.jar")!!.use { input ->

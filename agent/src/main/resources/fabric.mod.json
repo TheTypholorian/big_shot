@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "big_shot_agent",
+  "id": "big_shot_agent_check",
   "version": "1.0.0",
-  "description": "A checker that ensures the Big Shot java agent is loaded.\nNote that this is NOT big shot itself, merely an entrypoint to ensure that it will load correctly.\nDo not depend on this mod existing.",
+  "description": "A checker that ensures the Big Shot java agent is loaded.\nNote that this is NOT big shot itself, merely an entrypoint to ensure that it was installed correctly.\nDo not depend on this mod existing.",
   "entrypoints": {
     "preLaunch": [
       "net.typho.big_shot.agent.platform.fabric.FabricPreLaunch"
@@ -11,9 +11,6 @@
   "jars": [
     {
       "file": "big_shot/api.jar"
-    },
-    {
-      "file": "big_shot/mixinextras-fabric-0.6.0.jar"
     }
   ]
 }

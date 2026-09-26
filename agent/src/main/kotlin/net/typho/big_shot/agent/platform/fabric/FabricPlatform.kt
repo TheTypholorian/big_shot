@@ -160,12 +160,37 @@ object FabricPlatform : BigShotPlatform, EventGraph.SelfAware<String>, Transform
                         )
                     }
             }
+
+            "net/fabricmc/loader/impl/discovery/ModDiscoverer" -> {
+                info.markChanged()
+                info.computeMaxStacks()
+
+                // Prevent the agent from being loaded as a mod (important)
+                MethodPointer.method()
+                    .name($$"lambda$discoverMods$0")
+                    .findOrThrow(info.node) { method ->
+                        method.instructions.insert(InsnList().apply {
+                            add(VarInsnNode(Opcodes.ALOAD, 4))
+                            add(MethodInsnNode(
+                                Opcodes.INVOKESTATIC,
+                                "net/typho/big_shot/agent/platform/fabric/FabricPlatform",
+                                "stripModCandidatePaths",
+                                "(Ljava/util/List;)Ljava/util/List;"
+                            ))
+                            add(VarInsnNode(Opcodes.ASTORE, 4))
+                        })
+                    }
+            }
         }
     }
 
     @JvmStatic
+    fun stripModCandidatePaths(paths: List<Path>) = paths.filter { it != BigShotAgent.AGENT_PATH }
+
+    @JvmStatic
     fun testParentURL(url: URL, fileName: String): Boolean {
-        return LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName)) == BigShotAgent.API_PATH
+        val path = LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName))
+        return path == BigShotAgent.AGENT_PATH
     }
 
     @JvmStatic

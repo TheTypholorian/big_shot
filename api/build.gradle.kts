@@ -51,4 +51,9 @@ tasks.shadowJar {
     archiveVersion.set("")
     archiveClassifier.set("")
     configurations = listOf(this@Project.configurations.shadow.get())
+
+    from(this@Project.configurations.compileClasspath) {
+        include("mixinextras-fabric-*.jar") // TODO
+        into("big_shot")
+    }
 }

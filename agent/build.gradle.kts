@@ -21,7 +21,6 @@ dependencies {
     extraAccessWiden("net.neoforged.fancymodloader:loader:11.0.23") // TODO
 
     shadow(kotlin("stdlib"))
-    shadow(implementation("org.jetbrains.kotlin:kotlin-metadata-jvm:2.2.0")!!)
 
     compileOnly("org.ow2.asm:asm:9.10.1")
     compileOnly("org.ow2.asm:asm-tree:9.10.1")
@@ -46,7 +45,6 @@ dependencies {
         isTransitive = false
     })
     shadow(implementation(kotlin("reflect"))!!)
-    compileOnly("org.spongepowered:mixin:0.8.5")
 }
 
 kotlin {
@@ -58,10 +56,6 @@ tasks.shadowJar {
     configurations = listOf(this@Project.configurations.shadow.get())
 
     from(project(":api").tasks.named("shadowJar")) {
-        into("big_shot")
-    }
-    from(this@Project.configurations.compileClasspath) {
-        include("mixinextras-fabric-*.jar") // TODO
         into("big_shot")
     }
 
