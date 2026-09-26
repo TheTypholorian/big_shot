@@ -4,10 +4,14 @@ import net.typho.big_shot.common.BigShotModData
 import java.io.InputStream
 import java.nio.file.Path
 
-interface PlatformMod {
-    val id: String
-    val version: String
-    val bigShotData: BigShotModData?
+abstract class PlatformMod {
+    abstract val id: String
+    abstract val version: String
+    abstract val bigShotData: BigShotModData?
 
-    fun findResource(file: String): InputStream?
+    abstract fun findResource(file: String): InputStream?
+
+    override fun toString(): String {
+        return "$id $version"
+    }
 }

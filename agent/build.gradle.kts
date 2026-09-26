@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.4.0"
+    kotlin("jvm")
     id("com.gradleup.shadow") version "9.2.0"
     id("net.typho.big_shot.plugin") version "1.0.0"
 }

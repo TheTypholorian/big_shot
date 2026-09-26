@@ -12,7 +12,7 @@ import java.io.InputStream
 data class NeoForgeModImpl(
     @JvmField
     val neoforge: ModContainer
-) : PlatformMod {
+) : PlatformMod() {
     override val id: String
         get() = neoforge.modInfo.modId
     override val version: String
@@ -36,9 +36,5 @@ data class NeoForgeModImpl(
 
     override fun findResource(file: String): InputStream? {
         return neoforge.modInfo.owningFile.file.contents[file]?.open()
-    }
-
-    override fun toString(): String {
-        return neoforge.toString()
     }
 }

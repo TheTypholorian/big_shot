@@ -15,7 +15,7 @@ import kotlin.jvm.optionals.getOrNull
 data class FabricModImpl(
     @JvmField
     val fabric: ModContainer
-) : PlatformMod {
+) : PlatformMod() {
     override val id: String
         get() = fabric.metadata.id
     override val version: String
@@ -39,9 +39,5 @@ data class FabricModImpl(
 
     override fun findResource(file: String): InputStream? {
         return fabric.findPath(file).getOrNull()?.inputStream()
-    }
-
-    override fun toString(): String {
-        return fabric.toString()
     }
 }

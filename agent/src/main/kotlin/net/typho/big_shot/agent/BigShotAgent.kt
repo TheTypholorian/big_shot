@@ -2,8 +2,8 @@ package net.typho.big_shot.agent
 
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.big_shot.agent.platform.BigShotPlatform
-import net.typho.big_shot.agent.platform.fabric.BigShotFabric
-import net.typho.big_shot.agent.platform.neoforge.BigShotNeoForge
+import net.typho.big_shot.agent.platform.fabric.FabricPlatform
+import net.typho.big_shot.agent.platform.neoforge.NeoForgePlatform
 import net.typho.big_shot.agent.transform.RemapEvent
 import net.typho.big_shot.agent.transform.TransformEvent
 import net.typho.big_shot.agent.transform.impl.*
@@ -12,6 +12,7 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.tree.*
 import java.lang.instrument.ClassFileTransformer
 import java.lang.instrument.Instrumentation
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.security.ProtectionDomain
 import kotlin.io.path.*
@@ -21,6 +22,8 @@ object BigShotAgent : ClassFileTransformer {
     val DEBUG_PATH = Paths.get(".big_shot_debug")
     @JvmField
     val AGENT_PATH = javaClass.protectionDomain.codeSource.location.toURI().toPath()
+    @JvmField
+    var API_PATH = createTempDirectory("big_shot").resolve("api.jar")
 
     @get:JvmName("getInstrumentation")
     lateinit var INSTRUMENTATION: Instrumentation
@@ -56,9 +59,9 @@ object BigShotAgent : ClassFileTransformer {
         bytes: ByteArray
     ): ByteArray? {
         if (className == "net/fabricmc/loader/impl/launch/knot/Knot") {
-            BigShotPlatform.INSTANCE = BigShotFabric
+            BigShotPlatform.INSTANCE = FabricPlatform
         } else if (className == "net/neoforged/fml/startup/Entrypoint") {
-            BigShotPlatform.INSTANCE = BigShotNeoForge
+            BigShotPlatform.INSTANCE = NeoForgePlatform
         }
 
         try {
@@ -92,6 +95,12 @@ object BigShotAgent : ClassFileTransformer {
     fun premain(args: String?, inst: Instrumentation) {
         AgentLoadedCheck.loaded = true
         LOG.info("Loading big shot agent from $AGENT_PATH")
+        LOG.info("Writing api jar to $API_PATH")
+        javaClass.classLoader.getResourceAsStream("big_shot/api.jar")!!.use { input ->
+            API_PATH.outputStream().use { output ->
+                input.transferTo(output)
+            }
+        }
 
         INSTRUMENTATION = inst
 

@@ -12,6 +12,14 @@ object ClassTweakers {
         visitAccessWidener("net/fabricmc/loader/impl/discovery/ModCandidateFinder")!!.apply {
             visitClass(AccessWidenerVisitor.AccessType.ACCESSIBLE, false)
         }
+        visitAccessWidener("net/neoforged/fml/loading/LoadingModList")!!.apply {
+            visitMethod(
+                "getPackageIndex",
+                "()Ljava/util/Map;",
+                AccessWidenerVisitor.AccessType.ACCESSIBLE,
+                false
+            )
+        }
     }
 
     @JvmStatic

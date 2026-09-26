@@ -20,6 +20,9 @@ import org.jetbrains.annotations.ApiStatus
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.FieldInsnNode
 import org.objectweb.asm.tree.InsnList
+import org.objectweb.asm.tree.InsnNode
+import org.objectweb.asm.tree.JumpInsnNode
+import org.objectweb.asm.tree.LabelNode
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
 import java.net.URL
@@ -27,7 +30,7 @@ import java.nio.file.Path
 
 @ApiStatus.Internal
 @Suppress("unused")
-object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformEvent {
+object FabricPlatform : BigShotPlatform, EventGraph.SelfAware<String>, TransformEvent {
     override val allMods: List<PlatformMod>
         get() = FabricLoader.getInstance().allMods.map { FabricModImpl(it) }
     override val id: String
@@ -41,7 +44,14 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
         LOG = FabricLogImpl
         LOG.info("Loading big shot on fabric")
         BigShotAgent.TRANSFORM_EVENTS.register(this)
-        BigShotAgent.TRANSFORM_EVENTS.register(KnotClassDelegateTransform)
+    }
+
+    override fun getModAt(path: Path): PlatformMod? {
+        if (!loaded) {
+            return null
+        }
+
+        return FabricLoader.getInstance().allMods.firstOrNull { (it as? ModContainerImpl)?.codeSourcePaths?.contains(path) == true }?.let { FabricModImpl(it) }
     }
 
     override fun transform(
@@ -49,37 +59,11 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
         info: ClassTransformInfo
     ) {
         when (info.className) {
-            "net/fabricmc/loader/impl/ModContainerImpl" -> {
-                info.markChanged()
-                info.computeMaxStacks()
-
-                MethodPointer.method()
-                    .name("<init>")
-                    .findOrThrow(info.node) { method ->
-                        method.instructions.insertBefore(
-                            InsnPointer.fieldSet()
-                                .owner("net/fabricmc/loader/impl/ModContainerImpl")
-                                .name("codeSourcePaths")
-                                .desc("Ljava/util/List;")
-                                .findOrThrow(method.instructions),
-                            InsnList().apply {
-                                add(VarInsnNode(Opcodes.ALOAD, 1))
-                                add(MethodInsnNode(
-                                    Opcodes.INVOKESTATIC,
-                                    "net/typho/big_shot/agent/platform/fabric/BigShotFabric",
-                                    "getCodeSourcePaths",
-                                    "(Ljava/util/List;Lnet/fabricmc/loader/impl/discovery/ModCandidateImpl;)Ljava/util/List;"
-                                ))
-                            }
-                        )
-                    }
-            }
-
-            /*
             "net/fabricmc/loader/impl/launch/knot/KnotClassDelegate" -> {
                 info.markChanged()
-                info.computeMaxStacks()
+                info.computeFrames()
 
+                // Transforms (these apply to all classes plus mixins)
                 MethodPointer.method()
                     .name("getRawClassByteArray")
                     .desc("(Ljava/lang/String;Z)[B")
@@ -94,20 +78,42 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
                                 add(VarInsnNode(Opcodes.ALOAD, 1))
                                 add(MethodInsnNode(
                                     Opcodes.INVOKESTATIC,
-                                    "net/typho/big_shot/agent/platform/fabric/BigShotFabric",
+                                    "net/typho/big_shot/agent/platform/fabric/FabricPlatform",
                                     "getRawClassByteArray",
                                     "([BLjava/net/URL;Ljava/lang/String;)[B"
                                 ))
                             }
                         )
                     }
+                // Allow big shot agent classes to be used without knot freaking out (since the agent classes are loaded by java, not knot)
+                MethodPointer.method()
+                    .name("isValidParentUrl")
+                    .findOrThrow(info.node) { method ->
+                        method.instructions.insert(InsnList().apply {
+                            val label = LabelNode()
+                            add(VarInsnNode(Opcodes.ALOAD, 1))
+                            add(VarInsnNode(Opcodes.ALOAD, 2))
+                            add(
+                                MethodInsnNode(
+                                    Opcodes.INVOKESTATIC,
+                                    "net/typho/big_shot/agent/platform/fabric/FabricPlatform",
+                                    "testParentURL",
+                                    "(Ljava/net/URL;Ljava/lang/String;)Z"
+                                )
+                            )
+                            add(JumpInsnNode(Opcodes.IFEQ, label))
+                            add(InsnNode(Opcodes.ICONST_1))
+                            add(InsnNode(Opcodes.IRETURN))
+                            add(label)
+                        })
+                }
             }
-             */
 
             "net/fabricmc/loader/impl/FabricLoaderImpl" -> {
                 info.markChanged()
                 info.computeMaxStacks()
 
+                // Register the api as a mod, regardless if it's in the mods folder or not
                 MethodPointer.method()
                     .name("setup")
                     .findOrThrow(info.node) { method ->
@@ -120,26 +126,23 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
                                 .findOrThrow(method.instructions),
                             InsnList().apply {
                                 add(VarInsnNode(Opcodes.ALOAD, 4))
-                                add(
-                                    FieldInsnNode(
-                                        Opcodes.GETSTATIC,
-                                        $$"net/typho/big_shot/agent/platform/fabric/BigShotFabric$CandidateFinder",
-                                        "INSTANCE",
-                                        $$"Lnet/typho/big_shot/agent/platform/fabric/BigShotFabric$CandidateFinder;"
-                                    )
-                                )
-                                add(
-                                    MethodInsnNode(
-                                        Opcodes.INVOKEVIRTUAL,
-                                        "net/fabricmc/loader/impl/discovery/ModDiscoverer",
-                                        "addCandidateFinder",
-                                        "(Lnet/fabricmc/loader/impl/discovery/ModCandidateFinder;)V"
-                                    )
-                                )
+                                add(FieldInsnNode(
+                                    Opcodes.GETSTATIC,
+                                    $$"net/typho/big_shot/agent/platform/fabric/FabricPlatform$CandidateFinder",
+                                    "INSTANCE",
+                                    $$"Lnet/typho/big_shot/agent/platform/fabric/FabricPlatform$CandidateFinder;"
+                                ))
+                                add(MethodInsnNode(
+                                    Opcodes.INVOKEVIRTUAL,
+                                    "net/fabricmc/loader/impl/discovery/ModDiscoverer",
+                                    "addCandidateFinder",
+                                    "(Lnet/fabricmc/loader/impl/discovery/ModCandidateFinder;)V"
+                                ))
                             }
                         )
                     }
 
+                // Load big shot mod metadata
                 MethodPointer.method()
                     .name("finishModLoading")
                     .findOrThrow(info.node) { method ->
@@ -148,7 +151,7 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
                                 add(
                                     MethodInsnNode(
                                         Opcodes.INVOKESTATIC,
-                                        "net/typho/big_shot/agent/platform/fabric/BigShotFabric",
+                                        "net/typho/big_shot/agent/platform/fabric/FabricPlatform",
                                         "finishModLoading",
                                         "()V"
                                     )
@@ -160,12 +163,9 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
         }
     }
 
-    override fun getModAt(path: Path): PlatformMod? {
-        if (!loaded) {
-            return null
-        }
-
-        return FabricLoader.getInstance().allMods.firstOrNull { (it as? ModContainerImpl)?.codeSourcePaths?.contains(path) == true }?.let { FabricModImpl(it) }
+    @JvmStatic
+    fun testParentURL(url: URL, fileName: String): Boolean {
+        return LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName)) == BigShotAgent.API_PATH
     }
 
     @JvmStatic
@@ -197,11 +197,6 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
     }
 
     @JvmStatic
-    fun getCodeSourcePaths(paths: List<Path>, candidate: ModCandidateImpl): List<Path> {
-        return if (candidate.id == "big_shot_agent") listOf() else paths
-    }
-
-    @JvmStatic
     fun finishModLoading() {
         loadBigShotMetadata()
         loaded = true
@@ -209,7 +204,7 @@ object BigShotFabric : BigShotPlatform, EventGraph.SelfAware<String>, TransformE
 
     object CandidateFinder : ModCandidateFinder {
         override fun findCandidates(consumer: ModCandidateFinder.ModCandidateConsumer) {
-            consumer.accept(BigShotAgent.AGENT_PATH, false)
+            consumer.accept(BigShotAgent.API_PATH, false)
         }
     }
 }
