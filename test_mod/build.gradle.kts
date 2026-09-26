@@ -23,14 +23,37 @@ java {
     withSourcesJar()
 }
 
+// don't mind the cursed setup here :3
+val agentJarTask = project(":agent").tasks.named("shadowJar", Jar::class.java)
+val modsFolder = project.file("run/mods/")
+val agentInModsFolder = project.property("agent_in_mods_folder") == "true"
+val copyAgentTask = tasks.register("copyAgent") {
+    dependsOn(agentJarTask)
+
+    if (agentInModsFolder) {
+        copy {
+            from(agentJarTask.map { it.archiveFile })
+            into(modsFolder)
+        }
+    } else {
+        delete(modsFolder)
+    }
+}
+
 loom {
     runs.configureEach {
-        val agentJar = project(":agent").tasks.named("shadowJar", Jar::class.java)
-
-        jvmArguments.add(agentJar.map { "-javaagent:${it.archiveFile.get().asFile.absolutePath}" })
+        if (project.property("load_agent") == "true") {
+            jvmArguments.add(agentJarTask.map {
+                "-javaagent:${if (agentInModsFolder) {
+                    modsFolder.resolve(it.archiveFileName.get())
+                } else {
+                    it.archiveFile.get().asFile
+                }.absolutePath}"
+            })
+        }
 
         task {
-            dependsOn(agentJar)
+            dependsOn(copyAgentTask)
         }
     }
 }
