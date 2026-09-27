@@ -9,7 +9,7 @@ import net.typho.data_util.DataReadException
 import net.typho.data_util.impl.JsonFormat
 import java.io.InputStream
 
-data class NeoForgeModImpl(
+class NeoForgeModImpl(
     @JvmField
     val neoforge: ModContainer
 ) : PlatformMod() {

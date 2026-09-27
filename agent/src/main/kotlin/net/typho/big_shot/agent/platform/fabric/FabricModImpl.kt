@@ -12,7 +12,7 @@ import kotlin.io.path.inputStream
 import kotlin.io.path.readText
 import kotlin.jvm.optionals.getOrNull
 
-data class FabricModImpl(
+class FabricModImpl(
     @JvmField
     val fabric: ModContainer
 ) : PlatformMod() {

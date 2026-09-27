@@ -41,6 +41,10 @@ val copyAgentTask = tasks.register("copyAgent") {
 }
 
 loom {
+    mods.register("test_mod") {
+        sourceSet("main")
+    }
+
     runs.configureEach {
         if (project.property("load_agent") == "true") {
             jvmArguments.add(agentJarTask.map {
@@ -59,22 +63,22 @@ loom {
 }
 
 repositories {
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
+    mavenCentral()
     mavenLocal()
+    maven("https://repo.spongepowered.org/repository/maven-public/")
+    maven("https://maven.fabricmc.net")
+    maven("https://typho.net/maven")
 }
 
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft("com.mojang:minecraft:${project.property("minecraft_version")}")
     implementation("net.fabricmc:fabric-loader:${project.property("loader_version")}")
-    implementation("net.fabricmc:fabric-language-kotlin:${project.property("kotlin_loader_version")}")
-    
-    implementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
+
+    //implementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
     implementation("io.github.llamalad7:mixinextras-fabric:0.6.0")
+    compileOnly(project(":agent"))
+    compileOnly(project(":api"))
 }
 
 tasks.processResources {
@@ -86,8 +90,7 @@ tasks.processResources {
     filesMatching("fabric.mod.json") {
         expand("version" to project.version,
             "minecraft_version" to project.property("minecraft_version")!!,
-            "loader_version" to project.property("loader_version")!!,
-            "kotlin_loader_version" to project.property("kotlin_loader_version")!!)
+            "loader_version" to project.property("loader_version")!!)
     }
 }
 

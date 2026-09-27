@@ -62,27 +62,25 @@ class BigShotPlugin : Plugin<Project> {
         project.dependencies.registerTransform(AccessWidenTransformAction::class.java) {
             it.from.attribute(ACCESS_WIDENED_ATTRIBUTE, false)
             it.to.attribute(ACCESS_WIDENED_ATTRIBUTE, true)
-            it.parameters.classTweakers.set(project.provider {
-                val classTweakers = mutableListOf<File>()
-                javaExt.sourceSets.forEach { it.resources.sourceDirectories.forEach {
-                    val metadata = it.resolve("big_shot.mod.json")
+            val classTweakers = mutableListOf<File>()
+            javaExt.sourceSets.forEach { it.resources.sourceDirectories.forEach {
+                val metadata = it.resolve(BigShotModData.FILE_NAME)
 
-                    if (metadata.exists()) {
-                        val data = JsonFormat().read(BigShotModData.CODEC, metadata.readText())
+                if (metadata.exists()) {
+                    val data = JsonFormat().read(BigShotModData.CODEC, metadata.readText())
 
-                        data.classTweaker?.let { classTweaker ->
-                            val file = it.resolve(classTweaker)
+                    data.classTweaker?.let { classTweaker ->
+                        val file = it.resolve(classTweaker)
 
-                            if (file.exists()) {
-                                classTweakers.add(file)
-                            } else {
-                                System.err.println("Class tweaker ${data.classTweaker} does not exist (should be at $file)")
-                            }
+                        if (file.exists()) {
+                            classTweakers.add(file)
+                        } else {
+                            System.err.println("Class tweaker ${data.classTweaker} does not exist (should be at $file)")
                         }
                     }
-                } }
-                classTweakers
-            })
+                }
+            } }
+            it.parameters.classTweakers.from(classTweakers)
         }
 
         val extraAccessWiden = project.configurations.create("extraAccessWiden")

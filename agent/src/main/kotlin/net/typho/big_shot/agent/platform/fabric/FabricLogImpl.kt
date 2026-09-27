@@ -5,7 +5,7 @@ import net.fabricmc.loader.impl.util.log.LogCategory
 import net.typho.big_shot.agent.ILog
 
 internal object FabricLogImpl : ILog {
-    private val category = LogCategory.createCustom("BigShot")
+    private val category = LogCategory.createCustom("BigShotAgent")
 
     override fun error(msg: Any?) {
         Log.error(category, msg.toString())

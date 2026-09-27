@@ -10,6 +10,11 @@
   "depends": {
     "fabricloader": "~0.19.0"
   },
+  "entrypoints": {
+    "preLaunch": [
+      "net.typho.big_shot.api.platform.fabric.FabricPreLaunch"
+    ]
+  },
   "jars": [
     {
       "file": "big_shot/mixinextras-fabric-0.6.0.jar"

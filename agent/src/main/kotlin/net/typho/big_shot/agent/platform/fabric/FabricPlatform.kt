@@ -1,6 +1,7 @@
 package net.typho.big_shot.agent.platform.fabric
 
 import net.fabricmc.loader.api.FabricLoader
+import net.fabricmc.loader.api.metadata.ModOrigin
 import net.fabricmc.loader.impl.ModContainerImpl
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder
 import net.fabricmc.loader.impl.discovery.ModCandidateImpl
@@ -30,7 +31,7 @@ import java.nio.file.Path
 
 @ApiStatus.Internal
 @Suppress("unused")
-object FabricPlatform : BigShotPlatform, EventGraph.SelfAware<String>, TransformEvent {
+object FabricPlatform : BigShotPlatform(), EventGraph.SelfAware<String>, TransformEvent {
     override val allMods: List<PlatformMod>
         get() = FabricLoader.getInstance().allMods.map { FabricModImpl(it) }
     override val id: String
@@ -43,21 +44,26 @@ object FabricPlatform : BigShotPlatform, EventGraph.SelfAware<String>, Transform
     init {
         LOG = FabricLogImpl
         LOG.info("Loading big shot on fabric")
-        BigShotAgent.TRANSFORM_EVENTS.register(this)
     }
 
-    override fun getModAt(path: Path): PlatformMod? {
-        if (!loaded) {
-            return null
-        }
+    override fun getModsThatHaveResource(path: String): List<PlatformMod> {
+        return classLoader.getResources(path)
+            .toList()
+            .mapNotNull { getModAt(UrlUtil.getCodeSource(it, path)) }
+    }
 
-        return FabricLoader.getInstance().allMods.firstOrNull { (it as? ModContainerImpl)?.codeSourcePaths?.contains(path) == true }?.let { FabricModImpl(it) }
+    fun getModAt(path: Path): PlatformMod? {
+        return FabricLoader.getInstance().allMods.firstOrNull {
+            (it.origin.kind == ModOrigin.Kind.PATH && it.origin.paths.contains(path)) || (it as? ModContainerImpl)?.codeSourcePaths?.contains(path) == true
+        }?.let { FabricModImpl(it) }
     }
 
     override fun transform(
         mod: PlatformMod?,
         info: ClassTransformInfo
     ) {
+        super.transform(mod, info)
+
         when (info.className) {
             "net/fabricmc/loader/impl/launch/knot/KnotClassDelegate" -> {
                 info.markChanged()
@@ -146,7 +152,10 @@ object FabricPlatform : BigShotPlatform, EventGraph.SelfAware<String>, Transform
                 MethodPointer.method()
                     .name("finishModLoading")
                     .findOrThrow(info.node) { method ->
-                        method.instructions.insert(
+                        method.instructions.insertBefore(
+                            InsnPointer.simple()
+                                .opcode(Opcodes.RETURN)
+                                .findOrThrow(method.instructions),
                             InsnList().apply {
                                 add(
                                     MethodInsnNode(
@@ -189,8 +198,7 @@ object FabricPlatform : BigShotPlatform, EventGraph.SelfAware<String>, Transform
 
     @JvmStatic
     fun testParentURL(url: URL, fileName: String): Boolean {
-        val path = LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName))
-        return path == BigShotAgent.AGENT_PATH
+        return UrlUtil.getCodeSource(url, fileName) == BigShotAgent.AGENT_PATH
     }
 
     @JvmStatic
@@ -201,7 +209,7 @@ object FabricPlatform : BigShotPlatform, EventGraph.SelfAware<String>, Transform
             var mod: PlatformMod? = null
 
             try {
-                mod = getModAt(LoaderUtil.normalizeExistingPath(UrlUtil.getCodeSource(url, fileName)))
+                mod = getModThatHasClass(className)
             } catch (t: Throwable) {
                 LOG.error("Error finding owner mod for class $className", t)
             }

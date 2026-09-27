@@ -1,0 +1,7 @@
+{
+  "entrypoints": {
+    "early": [
+      "net.typho.test_mod.TestModEarly"
+    ]
+  }
+}

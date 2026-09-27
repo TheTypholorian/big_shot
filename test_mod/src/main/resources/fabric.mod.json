@@ -12,10 +12,6 @@
   "icon": "assets/test_mod/icon.png",
 
   "environment": "*",
-  "entrypoints": {
-    "client": ["net.typho.test_mod.client.TestModClient"],
-    "main": ["net.typho.test_mod.TestMod"]
-  },
 
   "mixins": [
     "test_mod.mixins.json"
@@ -23,8 +19,7 @@
 
   "depends": {
     "fabricloader": ">=${loader_version}",
-    "fabric-language-kotlin": ">=${kotlin_loader_version}",
-    "fabric-api": "*",
-    "minecraft": "${minecraft_version}"
+    "minecraft": "${minecraft_version}",
+    "big_shot": "*"
   }
 }

@@ -68,7 +68,7 @@ object BigShotAgent : ClassFileTransformer {
 
             if (BigShotPlatform.INSTANCE?.loaded == true) {
                 try {
-                    protectionDomain.codeSource?.location?.toURI()?.toPath()?.let { mod = BigShotPlatform.INSTANCE?.getModAt(it) }
+                    mod = BigShotPlatform.INSTANCE?.getModThatHasClass(className)
                 } catch (t: Throwable) {
                     LOG.error("Error finding owner mod for class $className", t)
                 }

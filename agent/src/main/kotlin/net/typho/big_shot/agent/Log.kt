@@ -18,7 +18,7 @@ internal object SystemLogImpl : ILog {
     }
 
     override fun error(msg: Any?) {
-        System.err.println("[BigShot/ERROR] $msg")
+        System.err.println("[BigShotAgent/ERROR] $msg")
     }
 
     override fun error(msg: Any?, e: Throwable) {
@@ -26,7 +26,7 @@ internal object SystemLogImpl : ILog {
     }
 
     override fun warn(msg: Any?) {
-        println("[BigShot/WARN] $msg")
+        println("[BigShotAgent/WARN] $msg")
     }
 
     override fun warn(msg: Any?, e: Throwable) {
@@ -34,7 +34,7 @@ internal object SystemLogImpl : ILog {
     }
 
     override fun info(msg: Any?) {
-        println("[BigShot/INFO] $msg")
+        println("[BigShotAgent/INFO] $msg")
     }
 
     override fun info(msg: Any?, e: Throwable) {
@@ -42,7 +42,7 @@ internal object SystemLogImpl : ILog {
     }
 
     override fun debug(msg: Any?) {
-        println("[BigShot/DEBUG] $msg")
+        println("[BigShotAgent/DEBUG] $msg")
     }
 
     override fun debug(msg: Any?, e: Throwable) {
@@ -50,7 +50,7 @@ internal object SystemLogImpl : ILog {
     }
 
     override fun trace(msg: Any?) {
-        println("[BigShot/TRACE] $msg")
+        println("[BigShotAgent/TRACE] $msg")
     }
 
     override fun trace(msg: Any?, e: Throwable) {
