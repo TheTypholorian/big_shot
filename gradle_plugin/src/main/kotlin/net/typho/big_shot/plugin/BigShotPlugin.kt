@@ -1,9 +1,6 @@
 package net.typho.big_shot.plugin
 
-import net.fabricmc.classtweaker.api.ClassTweaker
-import net.fabricmc.classtweaker.api.ClassTweakerReader
 import net.typho.big_shot.common.BigShotModData
-import net.typho.big_shot.common.ct.ClassTweakers
 import net.typho.big_shot.plugin.transform.AccessWidenTransformAction
 import net.typho.big_shot.plugin.transform.MinecraftTransformAction
 import net.typho.data_util.impl.JsonFormat
@@ -18,15 +15,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.plugins.JavaPluginExtension
-import sun.util.calendar.CalendarUtils.mod
 import java.io.File
-import java.io.FileNotFoundException
 import java.net.URI
 import java.nio.file.Files
-import java.nio.file.Path
-import kotlin.io.path.bufferedReader
-import kotlin.io.path.exists
-import kotlin.io.path.readText
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writer
 

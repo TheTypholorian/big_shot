@@ -4,9 +4,7 @@ import net.fabricmc.loader.api.FabricLoader
 import net.fabricmc.loader.api.metadata.ModOrigin
 import net.fabricmc.loader.impl.ModContainerImpl
 import net.fabricmc.loader.impl.discovery.ModCandidateFinder
-import net.fabricmc.loader.impl.discovery.ModCandidateImpl
 import net.fabricmc.loader.impl.launch.FabricLauncherBase
-import net.fabricmc.loader.impl.util.LoaderUtil
 import net.fabricmc.loader.impl.util.UrlUtil
 import net.typho.asm_util.ClassTransformInfo
 import net.typho.asm_util.insn.InsnPointer

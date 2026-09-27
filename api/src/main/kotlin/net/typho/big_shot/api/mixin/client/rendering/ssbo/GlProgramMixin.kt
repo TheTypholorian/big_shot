@@ -3,7 +3,6 @@ package net.typho.big_shot.api.mixin.client.rendering.ssbo
 import com.llamalad7.mixinextras.sugar.Jump
 import com.llamalad7.mixinextras.sugar.Local
 import com.llamalad7.mixinextras.sugar.Share
-import com.llamalad7.mixinextras.sugar.jump.JumpInfo
 import com.llamalad7.mixinextras.sugar.jump.JumpInfoComplex
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef
 import com.mojang.blaze3d.opengl.GlProgram

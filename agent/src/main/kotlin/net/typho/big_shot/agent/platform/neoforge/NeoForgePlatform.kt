@@ -14,7 +14,6 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.InsnList
 import org.objectweb.asm.tree.MethodInsnNode
 import org.objectweb.asm.tree.VarInsnNode
-import java.nio.file.Path
 import kotlin.jvm.optionals.getOrNull
 
 @ApiStatus.Internal

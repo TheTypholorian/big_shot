@@ -9,7 +9,6 @@ import net.typho.data_util.DataReadException
 import net.typho.data_util.impl.JsonFormat
 import java.io.InputStream
 import kotlin.io.path.inputStream
-import kotlin.io.path.readText
 import kotlin.jvm.optionals.getOrNull
 
 class FabricModImpl(

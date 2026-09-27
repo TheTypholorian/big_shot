@@ -2,9 +2,6 @@ package net.typho.big_shot.agent
 
 import java.io.PrintWriter
 import java.io.StringWriter
-import kotlin.properties.Delegates
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 internal var LOG: ILog = SystemLogImpl
 
