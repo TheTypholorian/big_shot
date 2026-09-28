@@ -1,7 +1,6 @@
 plugins {
     kotlin("jvm")
     id("com.gradleup.shadow") version "9.2.0"
-    id("net.typho.big_shot.plugin") version "1.0.0"
 }
 
 group = "net.typho"
@@ -32,7 +31,7 @@ dependencies {
     implementation("net.typho:data_util:${rootProject.property("versions.data_util")}") {
         isTransitive = false
     }
-    implementation(project(":common")) { // TODO
+    implementation("net.typho:big_shot.common:1.0.1") {
         isTransitive = false
     }
     implementation("net.fabricmc:class-tweaker:0.3.0") {

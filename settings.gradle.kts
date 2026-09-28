@@ -1,6 +1,8 @@
 rootProject.name = "big_shot"
 
 pluginManagement {
+    includeBuild("gradle_plugin")
+
     repositories {
         gradlePluginPortal()
         mavenCentral()
@@ -12,12 +14,17 @@ pluginManagement {
 
 plugins {
     kotlin("jvm") version "2.4.0" apply false
+    id("net.typho.big_shot.plugin") version "1.0.0"
+    id("net.typho.typho_publish") version "1.0.3" apply false
 }
 
-include("agent")
-include("api")
-include("common")
+includeBuild("common")
 include("decompiler")
-includeBuild("gradle_plugin")
 include("merger")
 include("test_mod")
+
+bigShot {
+    includeMod("agent_config", ":agent")
+    includeMod("api_config", ":api")
+    //includeMod("test_mod_config", ":test_mod")
+}

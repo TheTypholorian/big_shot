@@ -4,7 +4,7 @@ import net.neoforged.fml.ModContainer
 import net.neoforged.neoforgespi.language.IModInfo
 import net.typho.big_shot.agent.LOG
 import net.typho.big_shot.agent.PlatformMod
-import net.typho.big_shot.common.BigShotModData
+import net.typho.big_shot.common.ExtraModData
 import net.typho.data_util.DataReadException
 import net.typho.data_util.impl.JsonFormat
 import java.io.InputStream
@@ -17,10 +17,10 @@ class NeoForgeModImpl(
         get() = neoforge.modInfo.modId
     override val version: String
         get() = neoforge.modInfo.version.toString()
-    override val bigShotData: BigShotModData? by lazy {
-        findResource(BigShotModData.FILE_NAME)?.use {
+    override val bigShotData: ExtraModData? by lazy {
+        findResource(ExtraModData.FILE_NAME)?.use {
             try {
-                val data = JsonFormat().read(BigShotModData.CODEC, it.bufferedReader().readText())
+                val data = JsonFormat().read(ExtraModData.CODEC, it.bufferedReader().readText())
 
                 if (id != "big_shot" && neoforge.modInfo.dependencies.none { it.modId == "big_shot" && it.type == IModInfo.DependencyType.REQUIRED }) {
                     LOG.warn("Mod $id has big shot metadata but doesn't declare a dependency on big shot")

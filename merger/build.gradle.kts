@@ -9,6 +9,7 @@ repositories {
     mavenCentral()
     mavenLocal()
     maven("https://typho.net/maven")
+    maven("https://maven.fabricmc.net")
 }
 
 dependencies {
@@ -18,7 +19,7 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:9.10.1")
     implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}")
     implementation("net.typho:data_util:${rootProject.property("versions.data_util")}")
-    implementation(project(":common")) // TODO
+    implementation("net.typho:big_shot.common:1.0.1")
     implementation(kotlin("reflect"))
 }
 

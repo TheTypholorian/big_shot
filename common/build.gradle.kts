@@ -1,9 +1,10 @@
 plugins {
-    kotlin("jvm")
+    kotlin("jvm") version "2.4.0"
+    id("net.typho.typho_publish") version "1.0.3"
 }
 
 group = "net.typho"
-version = "1.0.0"
+version = "1.0.1"
 
 repositories {
     mavenCentral()
@@ -14,12 +15,11 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
     implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}")
     implementation("net.typho:data_util:${rootProject.property("versions.data_util")}")
     implementation("org.semver4j:semver4j:6.0.0")
     implementation(kotlin("reflect"))
-    compileOnly("net.fabricmc:class-tweaker:0.3.0")
+    implementation("net.fabricmc:class-tweaker:0.3.0")
 }
 
 kotlin {

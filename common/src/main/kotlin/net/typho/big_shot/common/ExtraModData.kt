@@ -3,8 +3,8 @@ package net.typho.big_shot.common
 import net.typho.data_util.anno.FieldCodec
 import net.typho.data_util.codec.Codec
 
-data class BigShotModData(
-    @FieldCodec(owner = BigShotModData::class, value = "ENTRYPOINTS_CODEC")
+data class ExtraModData(
+    @FieldCodec(owner = ExtraModData::class, value = "ENTRYPOINTS_CODEC")
     @JvmField
     val entrypoints: Map<String, List<String>>?,
     @JvmField
@@ -15,6 +15,6 @@ data class BigShotModData(
         @JvmField
         val ENTRYPOINTS_CODEC = Codec.unboundedMap(Codec.either(Codec.STRING.listOf(), listOf(Codec.STRING.mapRead { listOf(it) })))
         @JvmField
-        val CODEC = Codec.reflect(BigShotModData::class.java)
+        val CODEC = Codec.reflect(ExtraModData::class.java)
     }
 }

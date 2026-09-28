@@ -4,7 +4,7 @@ import net.fabricmc.loader.api.ModContainer
 import net.fabricmc.loader.api.metadata.ModDependency
 import net.typho.big_shot.agent.LOG
 import net.typho.big_shot.agent.PlatformMod
-import net.typho.big_shot.common.BigShotModData
+import net.typho.big_shot.common.ExtraModData
 import net.typho.data_util.DataReadException
 import net.typho.data_util.impl.JsonFormat
 import java.io.InputStream
@@ -19,10 +19,10 @@ class FabricModImpl(
         get() = fabric.metadata.id
     override val version: String
         get() = fabric.metadata.version.friendlyString
-    override val bigShotData: BigShotModData? by lazy {
-        findResource(BigShotModData.FILE_NAME)?.use {
+    override val bigShotData: ExtraModData? by lazy {
+        findResource(ExtraModData.FILE_NAME)?.use {
             try {
-                val data = JsonFormat().read(BigShotModData.CODEC, it.bufferedReader().readText())
+                val data = JsonFormat().read(ExtraModData.CODEC, it.bufferedReader().readText())
 
                 if (id != "big_shot" && fabric.metadata.dependencies.none { it.modId == "big_shot" && it.kind == ModDependency.Kind.DEPENDS }) {
                     LOG.warn("Mod $id has big shot metadata but doesn't declare a dependency on big shot")

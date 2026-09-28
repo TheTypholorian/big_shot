@@ -1,6 +1,8 @@
 package net.typho.big_shot.plugin
 
-import net.typho.big_shot.common.BigShotModData
+import net.typho.big_shot.common.ExtraModData
+import net.typho.big_shot.common.gradle.ModGradleEntrypoint
+import net.typho.big_shot.plugin.ext.BigShotSettingsExtension
 import net.typho.big_shot.plugin.transform.AccessWidenTransformAction
 import net.typho.big_shot.plugin.transform.MinecraftTransformAction
 import net.typho.data_util.impl.JsonFormat
@@ -14,14 +16,17 @@ import org.eclipse.aether.supplier.RepositorySystemSupplier
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.JavaPluginExtension
 import java.io.File
 import java.net.URI
+import java.net.URLClassLoader
 import java.nio.file.Files
+import java.util.jar.JarFile
 import kotlin.io.path.writeBytes
 import kotlin.io.path.writer
 
-class BigShotPlugin : Plugin<Project> {
+class BigShotSettingsPlugin : Plugin<Settings> {
     companion object {
         @JvmField
         val MINECRAFT_TRANSFORMED_ATTRIBUTE = Attribute.of(
@@ -35,9 +40,53 @@ class BigShotPlugin : Plugin<Project> {
         )
     }
 
-    override fun apply(project: Project) {
-        val cacheFolder = project.gradle.gradleUserHomeDir.resolve("caches").resolve("big_shot")
-        val ext = project.extensions.create("bigShot", BigShotBuildService::class.java, cacheFolder)
+    lateinit var cacheFolder: File
+    lateinit var settingsExt: BigShotSettingsExtension
+
+    override fun apply(settings: Settings) {
+        cacheFolder = settings.gradle.gradleUserHomeDir.resolve("caches").resolve("big_shot")
+        settingsExt = settings.extensions.create("bigShot", BigShotSettingsExtension::class.java, this, settings, cacheFolder)
+    }
+
+    fun applyTarget(project: Project, modName: String) {
+        project.plugins.apply("java")
+
+        project.repositories.mavenCentral()
+        project.repositories.maven { it.setUrl("https://maven.fabricmc.net") }
+        project.repositories.maven { it.setUrl("https://typho.net/maven") }
+
+        project.plugins.apply("big_shot.config.$modName")
+
+        Thread.currentThread().contextClassLoader.getResources("META-INF/MANIFEST.MF").iterator().forEach {
+            println("manifest $it")
+        }
+
+        /*
+        val files = configuration.resolve()
+        val loader = URLClassLoader(
+            "BigShotModConfig",
+            files.map { it.toURI().toURL() }.toTypedArray(),
+            Thread.currentThread().contextClassLoader
+        )
+
+        for (file in files) {
+            if (file.extension == "jar") {
+                JarFile(file).use { jar ->
+                    jar.manifest.mainAttributes[Constants.MANIFEST_CONFIG_CLASS]?.let { name ->
+                        val cls = loader.loadClass(name as String)
+
+                        if (!ModGradleEntrypoint::class.java.isAssignableFrom(cls)) {
+                            throw IllegalStateException("Jar $jar has ${Constants.MANIFEST_CONFIG_CLASS}=$name, yet that class doesn't implement ${ModGradleEntrypoint::class}")
+                        }
+
+                        val entrypoint = (cls.kotlin.objectInstance ?: cls.getConstructor().newInstance()) as ModGradleEntrypoint
+                        val config = entrypoint.createConfig(mapOf()) // TODO
+                        println("Config: $config")
+                    }
+                }
+            }
+        }
+         */
 
         project.plugins.apply("java")
         val javaExt = project.extensions.getByType(JavaPluginExtension::class.java)
@@ -55,10 +104,10 @@ class BigShotPlugin : Plugin<Project> {
             it.to.attribute(ACCESS_WIDENED_ATTRIBUTE, true)
             val classTweakers = mutableListOf<File>()
             javaExt.sourceSets.forEach { it.resources.sourceDirectories.forEach {
-                val metadata = it.resolve(BigShotModData.FILE_NAME)
+                val metadata = it.resolve(ExtraModData.FILE_NAME)
 
                 if (metadata.exists()) {
-                    val data = JsonFormat().read(BigShotModData.CODEC, metadata.readText())
+                    val data = JsonFormat().read(ExtraModData.CODEC, metadata.readText())
 
                     data.classTweaker?.let { classTweaker ->
                         val file = it.resolve(classTweaker)
@@ -96,7 +145,7 @@ class BigShotPlugin : Plugin<Project> {
             it.setUrl("https://libraries.minecraft.net")
         }
 
-        val version = ext.versionManifest.getFamily("26.2")
+        val version = settingsExt.versionManifest.getFamily("26.2")
 
         val artifact = DefaultArtifact(
             "com.mojang",

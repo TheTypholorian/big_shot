@@ -1,12 +1,12 @@
 package net.typho.big_shot.agent
 
-import net.typho.big_shot.common.BigShotModData
+import net.typho.big_shot.common.ExtraModData
 import java.io.InputStream
 
 abstract class PlatformMod {
     abstract val id: String
     abstract val version: String
-    abstract val bigShotData: BigShotModData?
+    abstract val bigShotData: ExtraModData?
 
     abstract fun findResource(file: String): InputStream?
 

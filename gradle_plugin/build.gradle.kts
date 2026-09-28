@@ -16,6 +16,8 @@ repositories {
 }
 
 dependencies {
+    compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20")
+
     implementation("org.ow2.asm:asm:9.10.1")
     implementation("org.ow2.asm:asm-tree:9.10.1")
     implementation("org.ow2.asm:asm-util:9.10.1")
@@ -31,7 +33,7 @@ dependencies {
 
     implementation("net.typho:asm_util:${rootProject.property("versions.asm_util")}")
     implementation("net.typho:data_util:${rootProject.property("versions.data_util")}")
-    implementation(project(":common")) // TODO
+    implementation("net.typho:big_shot.common:1.0.1")
     implementation("net.fabricmc:class-tweaker:0.3.0")
 }
 
@@ -39,7 +41,12 @@ gradlePlugin {
     plugins {
         create("big_shot_plugin") {
             id = "net.typho.big_shot.plugin"
-            implementationClass = "net.typho.big_shot.plugin.BigShotPlugin"
+            implementationClass = "net.typho.big_shot.plugin.BigShotSettingsPlugin"
+        }
+
+        create("big_shot_config_plugin") {
+            id = "net.typho.big_shot.plugin.config"
+            implementationClass = "net.typho.big_shot.plugin.BigShotConfigPlugin"
         }
     }
 }

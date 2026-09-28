@@ -1,7 +1,7 @@
 package net.typho.big_shot.agent.platform.fabric
 
-import net.typho.big_shot.common.BigShotModData
+import net.typho.big_shot.common.ExtraModData
 
 interface ModContainerExtension {
-    val bigShotModData: BigShotModData?
+    val extraModData: ExtraModData?
 }

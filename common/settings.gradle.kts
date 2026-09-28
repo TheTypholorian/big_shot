@@ -1,4 +1,4 @@
-rootProject.name = "gradle_plugin"
+rootProject.name = "big_shot.common"
 
 pluginManagement {
     repositories {
@@ -9,10 +9,3 @@ pluginManagement {
         maven("https://typho.net/maven")
     }
 }
-
-plugins {
-    kotlin("jvm") version "2.4.0" apply false
-    id("net.typho.typho_publish") version "1.0.3" apply false
-}
-
-includeFlat("common")
