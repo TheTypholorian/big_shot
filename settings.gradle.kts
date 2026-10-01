@@ -15,7 +15,7 @@ pluginManagement {
 plugins {
     kotlin("jvm") version "2.4.0" apply false
     id("net.typho.big_shot.plugin") version "1.0.0"
-    id("net.typho.typho_publish") version "1.0.3" apply false
+    id("net.typho.typho_publish") version "1.0.4" apply false
 }
 
 includeBuild("common")
